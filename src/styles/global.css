@@ -34,10 +34,12 @@ section.block { padding: 96px 0; position: relative }
 .block h2 { font-size: clamp(30px, 4.6vw, 46px) }
 .lede { color: var(--muted); max-width: 62ch; margin: 16px 0 0; font-size: 19px }
 
-/* reveal */
-.reveal { opacity: 0; transform: translateY(22px); transition: opacity .6s ease, transform .6s ease }
-.reveal.in { opacity: 1; transform: none }
-@media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none } }
+/* reveal — hidden ONLY when JS is present to reveal it again (the `js`
+   class is stamped on <html> in Base.astro); without JS everything is
+   simply visible */
+html.js .reveal { opacity: 0; transform: translateY(22px); transition: opacity .6s ease, transform .6s ease }
+html.js .reveal.in { opacity: 1; transform: none }
+@media (prefers-reduced-motion: reduce) { html.js .reveal { opacity: 1; transform: none; transition: none } }
 
 /* buttons */
 .btn {
