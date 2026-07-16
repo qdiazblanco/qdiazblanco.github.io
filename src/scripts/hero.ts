@@ -77,12 +77,14 @@ export function initHero(): void {
     // fewer polylines on phones — same math, lighter frames
     NU = narrow ? 44 : 60;
     NV = S.vClosed ? (narrow ? 22 : 26) : (narrow ? 18 : 22);
-    const fit = narrow ? Math.min(h * 0.23, w * 0.38) : Math.min(h * 0.44, w * 0.26);
+    // narrow: the surface lives in the band reserved by .hero-inner's
+    // bottom padding (see Hero.astro) — anchored from the bottom so it
+    // can never collide with the text above
+    const fit = narrow ? Math.min(150, w * 0.36) : Math.min(h * 0.44, w * 0.26);
     scale = fit / A.RAD;
     if (narrow) {
-      // below the text block: legibility of the words always wins
       cx = w * 0.5;
-      cy = h * 0.68;
+      cy = h - 190;
     } else {
       cx = w * 0.73;
       cy = h * 0.5;

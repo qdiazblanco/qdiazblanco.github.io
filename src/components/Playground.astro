@@ -13,10 +13,11 @@ const initial = PROOF[0]!;
   <div class="wrap">
     <p class="eyebrow reveal"><span class="dot"></span>Signature feature</p>
     <h2 class="reveal">A proof you can step through</h2>
+    <!-- "Hit <strong>" stays on one line: Astro collapses whitespace before inline elements at line breaks -->
     <p class="lede reveal">
-      This is a real Lean 4 proof — checked against the compiler before it shipped. Hit
-      <strong>Step</strong> and watch the goal state on the right update exactly as it would
-      in the editor: hypotheses accumulate, cases split, goals close.
+      This is a real Lean 4 proof — checked against the compiler before it shipped. Hit <strong>Step</strong> and
+      watch the goal state on the right update exactly as it would in the editor: hypotheses
+      accumulate, cases split, goals close.
     </p>
 
     <div class="lean reveal" role="group" aria-label="Interactive Lean proof stepper">
