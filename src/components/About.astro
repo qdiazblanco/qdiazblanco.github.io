@@ -1,0 +1,54 @@
+<section class="block" id="about">
+  <div class="wrap">
+    <p class="eyebrow reveal"><span class="dot"></span>Who's behind this</p>
+    <h2 class="reveal">A short version</h2>
+    <div class="about-grid reveal">
+      <div>
+        <p>
+          I'm Enrique — everyone calls me Quique. I studied mathematics in Madrid and fell for
+          the corner of it where geometry meets rigour: my bachelor's thesis walks from the
+          Morse Lemma to the Morse inequalities, following Milnor's <em>Morse Theory</em>.
+          These days I write mathematics a computer checks line by line, in Lean 4, working
+          towards manifolds and Mathlib.
+        </p>
+        <p>
+          By day I process fNIRS and EEG recordings — Python, MNE, real messy data under real
+          hardware constraints. A different world with the same instinct: take something that
+          looks like intuition and make it <em>rigorous</em>.
+        </p>
+        <p>
+          I also co-organize <a href="https://madlean-hub.web.app">MadLean</a>, Madrid's Lean
+          community. This site is my notebook — imperfect notes published while I learn,
+          especially where Lean meets AI. Poke around.
+        </p>
+      </div>
+      <aside class="facts" aria-label="Quick facts">
+        <dl>
+          <div class="row"><dt>Focus</dt><dd>Lean 4 · Mathlib · manifolds</dd></div>
+          <div class="row">
+            <dt>Thesis</dt>
+            <dd><a href="https://github.com/qdiazblanco/introduction-to-morse-theory">Morse theory (in Spanish)</a></dd>
+          </div>
+          <div class="row"><dt>Day job</dt><dd>fNIRS · EEG · Python</dd></div>
+          <div class="row">
+            <dt>Community</dt>
+            <dd><a href="https://madlean-hub.web.app">MadLean</a> — co-organizer</dd>
+          </div>
+          <div class="row"><dt>Based in</dt><dd>Madrid</dd></div>
+        </dl>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<style>
+  .about-grid { display: grid; grid-template-columns: 1.3fr .9fr; gap: 48px; align-items: start; margin-top: 34px }
+  .about-grid p { margin: 0 0 18px }
+  .facts { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 22px }
+  .facts dl { margin: 0 }
+  .facts .row { display: flex; justify-content: space-between; gap: 16px; padding: 15px 0; border-bottom: 1px solid var(--border) }
+  .facts .row:last-child { border-bottom: 0 }
+  .facts dt { font-family: var(--mono); font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin: 0 }
+  .facts dd { margin: 0; font-weight: 500; text-align: right }
+  @media (max-width: 800px) { .about-grid { grid-template-columns: 1fr; gap: 28px } }
+</style>

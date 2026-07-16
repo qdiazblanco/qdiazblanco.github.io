@@ -1,0 +1,35 @@
+---
+// The email is lightly obfuscated with HTML entities so naive scrapers
+// don't harvest it; it still works as a normal link, with or without JS.
+---
+
+<section class="block" id="contact">
+  <div class="wrap">
+    <p class="eyebrow reveal" style="justify-content:center"><span class="dot"></span>Say hello</p>
+    <h2 class="reveal">Let's talk proofs, or signals</h2>
+    <a class="big-mail reveal" href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#113;&#100;&#105;&#97;&#122;&#98;&#108;&#97;&#110;&#99;&#111;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;"
+      >&#113;&#100;&#105;&#97;&#122;&#98;&#108;&#97;&#110;&#99;&#111;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;</a
+    >
+    <div class="social reveal">
+      <a href="https://github.com/qdiazblanco">GitHub</a>
+      <a href="https://leanprover.zulipchat.com">Lean Zulip</a>
+      <a href="https://madlean-hub.web.app">MadLean</a>
+      <a href="https://www.linkedin.com/in/enrique-d%C3%ADaz-blanco-477667381/">LinkedIn</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  #contact { text-align: center }
+  .big-mail {
+    font-family: var(--disp); font-weight: 700; font-size: clamp(26px, 5vw, 44px); text-decoration: none;
+    display: inline-block; margin: 14px 0 30px; background: linear-gradient(92deg, var(--violet), var(--blue), var(--hbo));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .social { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap }
+  .social a {
+    font-family: var(--mono); font-size: 14px; text-decoration: none; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 999px; padding: 12px 18px; transition: border-color .18s, color .18s;
+  }
+  .social a:hover { color: var(--ink); border-color: var(--ink) }
+</style>
