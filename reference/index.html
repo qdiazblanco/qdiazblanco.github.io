@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Your Name — signals & proofs</title>
+<meta name="description" content="Neuroscience signal processing (fNIRS / EEG) and formal mathematics in Lean / Mathlib." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F2F1FA;        /* pale periwinkle paper */
+    --surface:#FFFFFF;
+    --ink:#16162A;       /* deep indigo ink, not pure black */
+    --muted:#5A5A74;
+    --border:#E6E4F2;
+    --hbo:#FB5C7D;        /* oxygenated-signal coral */
+    --blue:#3A86FF;       /* deoxygenated-signal blue */
+    --violet:#7C3AED;     /* proofs / Lean */
+    --mint:#10C8A0;
+    --amber:#FFB703;
+    --disp:"Space Grotesk",ui-sans-serif,system-ui,sans-serif;
+    --body:"Inter",ui-sans-serif,system-ui,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --maxw:1100px;
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);
+    font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  a{color:inherit}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  h1,h2,h3{font-family:var(--disp);font-weight:600;line-height:1.05;letter-spacing:-0.02em;margin:0}
+
+  /* ---------- eyebrow / section headers ---------- */
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);
+    font-size:12.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+    margin:0 0 18px;
+  }
+  .eyebrow .dot{width:8px;height:8px;border-radius:50%;background:var(--violet);
+    box-shadow:0 0 0 0 color-mix(in srgb,var(--violet) 55%,transparent);animation:pulse 2.4s ease-out infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--violet) 55%,transparent)}
+    70%{box-shadow:0 0 0 12px transparent}100%{box-shadow:0 0 0 0 transparent}}
+  @media (prefers-reduced-motion:reduce){.eyebrow .dot{animation:none}}
+
+  /* ---------- nav ---------- */
+  header.nav{position:sticky;top:0;z-index:50;
+    backdrop-filter:saturate(1.4) blur(10px);
+    background:color-mix(in srgb,var(--bg) 78%,transparent);
+    border-bottom:1px solid var(--border)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .brand{font-family:var(--disp);font-weight:700;font-size:18px;letter-spacing:-.02em;text-decoration:none;
+    display:inline-flex;align-items:center;gap:10px}
+  .brand .glyph{width:22px;height:22px;border-radius:7px;
+    background:conic-gradient(from 210deg,var(--hbo),var(--amber),var(--mint),var(--blue),var(--violet),var(--hbo))}
+  nav.links{display:flex;gap:26px}
+  nav.links a{font-size:14.5px;font-weight:500;text-decoration:none;color:var(--muted);
+    padding:6px 2px;position:relative;transition:color .18s}
+  nav.links a:hover{color:var(--ink)}
+  nav.links a::after{content:"";position:absolute;left:0;right:100%;bottom:0;height:2px;border-radius:2px;
+    background:var(--violet);transition:right .22s ease}
+  nav.links a:hover::after{right:0}
+  .menu-btn{display:none;background:none;border:1px solid var(--border);border-radius:10px;
+    width:40px;height:38px;cursor:pointer;color:var(--ink);font-size:18px}
+  @media (max-width:720px){
+    nav.links{position:fixed;inset:64px 0 auto 0;flex-direction:column;gap:0;background:var(--surface);
+      border-bottom:1px solid var(--border);padding:8px 24px 16px;transform:translateY(-140%);transition:transform .28s ease}
+    nav.links.open{transform:translateY(0)}
+    nav.links a{padding:12px 0;border-bottom:1px solid var(--border)}
+    .menu-btn{display:block}
+  }
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;min-height:calc(100svh - 64px);display:flex;align-items:center;overflow:hidden}
+  #net{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .hero-inner{position:relative;z-index:2;padding:40px 0 80px;pointer-events:none}
+  .hero-inner .wrap>*{pointer-events:auto}
+  .kicker{font-family:var(--mono);font-size:13px;letter-spacing:.06em;color:var(--muted);margin:0 0 18px}
+  .kicker b{color:var(--violet)}
+  h1.title{font-size:clamp(44px,8.5vw,88px);font-weight:700;max-width:15ch}
+  h1.title .g1{background:linear-gradient(92deg,var(--hbo),var(--amber));-webkit-background-clip:text;background-clip:text;color:transparent}
+  h1.title .g2{background:linear-gradient(92deg,var(--blue),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lead{font-size:clamp(18px,2.2vw,22px);color:var(--muted);max-width:46ch;margin:22px 0 30px}
+  .cta-row{display:flex;flex-wrap:wrap;gap:14px}
+  .btn{font-family:var(--disp);font-weight:600;font-size:15.5px;text-decoration:none;
+    padding:13px 22px;border-radius:999px;border:1.5px solid var(--ink);display:inline-flex;align-items:center;gap:9px;
+    transition:transform .16s ease,box-shadow .16s ease,background .16s}
+  .btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .btn.primary:hover{transform:translateY(-2px);box-shadow:6px 8px 0 var(--violet)}
+  .btn.ghost{background:transparent}
+  .btn.ghost:hover{transform:translateY(-2px);box-shadow:6px 8px 0 var(--hbo)}
+  .scrollcue{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);z-index:2;
+    font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;
+    display:flex;flex-direction:column;align-items:center;gap:8px}
+  .scrollcue span{width:1px;height:34px;background:linear-gradient(var(--muted),transparent)}
+
+  /* ---------- generic section ---------- */
+  section.block{padding:96px 0;position:relative}
+  .block h2{font-size:clamp(30px,4.6vw,46px)}
+  .lede{color:var(--muted);max-width:62ch;margin:16px 0 0;font-size:19px}
+
+  /* reveal */
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
+  .reveal.in{opacity:1;transform:none}
+  @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
+
+  /* about */
+  .about-grid{display:grid;grid-template-columns:1.3fr .9fr;gap:48px;align-items:start;margin-top:34px}
+  .about-grid p{margin:0 0 18px}
+  .facts{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:8px 22px}
+  .facts dl{margin:0}
+  .facts .row{display:flex;justify-content:space-between;gap:16px;padding:15px 0;border-bottom:1px solid var(--border)}
+  .facts .row:last-child{border-bottom:0}
+  .facts dt{font-family:var(--mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0}
+  .facts dd{margin:0;font-weight:500;text-align:right}
+  @media (max-width:800px){.about-grid{grid-template-columns:1fr;gap:28px}}
+
+  /* cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px;margin-top:38px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:26px;
+    transition:transform .2s ease,box-shadow .2s ease,border-color .2s;position:relative;overflow:hidden}
+  .card:hover{transform:translateY(-4px);box-shadow:0 18px 40px -22px rgba(22,22,42,.35)}
+  .card .tag{font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;
+    padding:5px 11px;border-radius:999px;display:inline-block;margin-bottom:16px;font-weight:500}
+  .card h3{font-size:22px;margin-bottom:10px}
+  .card p{color:var(--muted);margin:0;font-size:15.5px}
+  .card .stripe{position:absolute;left:0;top:0;bottom:0;width:5px}
+  .t-hbo{background:color-mix(in srgb,var(--hbo) 15%,white);color:var(--hbo)}
+  .t-blue{background:color-mix(in srgb,var(--blue) 14%,white);color:var(--blue)}
+  .t-violet{background:color-mix(in srgb,var(--violet) 14%,white);color:var(--violet)}
+  .t-mint{background:color-mix(in srgb,var(--mint) 16%,white);color:#08926f}
+  .t-amber{background:color-mix(in srgb,var(--amber) 20%,white);color:#a9760a}
+
+  /* ---------- lean playground (signature) ---------- */
+  #playground{background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--violet) 6%,transparent))}
+  .lean{display:grid;grid-template-columns:1.15fr .85fr;gap:0;margin-top:40px;
+    border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:#0f0f1e;
+    box-shadow:0 26px 60px -30px rgba(124,58,237,.55)}
+  .lean-code,.lean-goal{padding:24px 26px}
+  .lean-code{border-right:1px solid #26263f}
+  .lean-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .lean-bar .name{font-family:var(--mono);font-size:12px;color:#8b8bb0;letter-spacing:.05em}
+  .lean-bar .dots{display:flex;gap:6px}
+  .lean-bar .dots i{width:10px;height:10px;border-radius:50%;display:block}
+  pre.code{margin:0;font-family:var(--mono);font-size:14px;line-height:2;color:#e6e6ff;white-space:pre;overflow-x:auto}
+  pre.code .ln{display:block;padding:0 8px;border-radius:6px;transition:background .2s}
+  pre.code .ln.active{background:color-mix(in srgb,var(--violet) 30%,transparent)}
+  pre.code .ln.done{opacity:.55}
+  .kw{color:#c792ea}.fn{color:#82aaff}.ty{color:#ffcb6b}.op{color:#89ddff}.num{color:#f78c6c}.cm{color:#5a5a80;font-style:italic}
+  .lean-goal{background:#12122a;color:#dcdcf5}
+  .goal-head{font-family:var(--mono);font-size:12px;color:#8b8bb0;letter-spacing:.05em;margin-bottom:14px;
+    display:flex;align-items:center;gap:8px}
+  .goal-head .pill{background:color-mix(in srgb,var(--mint) 22%,transparent);color:var(--mint);
+    padding:2px 10px;border-radius:999px;font-weight:500}
+  .goals{display:flex;flex-direction:column;gap:16px;min-height:150px}
+  .goal{font-family:var(--mono);font-size:13.5px;line-height:1.7;border-left:2px solid var(--violet);padding-left:14px;
+    animation:pop .35s ease}
+  @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.goal{animation:none}}
+  .goal .hyp{color:#a9a9d6}
+  .goal .turn{color:var(--mint);font-weight:700}
+  .goal .tgt{color:#fff}
+  .goal .case{color:var(--amber);font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;display:block;margin-bottom:4px}
+  .solved{font-family:var(--disp);font-size:20px;color:var(--mint);display:flex;align-items:center;gap:10px}
+  .lean-ctrl{display:flex;align-items:center;gap:12px;margin-top:22px;flex-wrap:wrap}
+  .lean-ctrl button{font-family:var(--disp);font-weight:600;font-size:14px;cursor:pointer;border-radius:999px;
+    padding:10px 20px;border:1.5px solid var(--violet);background:var(--violet);color:white;transition:transform .15s,opacity .2s}
+  .lean-ctrl button.sec{background:transparent;color:#c9c9f0}
+  .lean-ctrl button:hover{transform:translateY(-2px)}
+  .lean-ctrl button:disabled{opacity:.4;cursor:not-allowed;transform:none}
+  .lean-ctrl .prog{font-family:var(--mono);font-size:12px;color:#8b8bb0;margin-left:auto}
+  .swap-note{margin-top:16px;font-size:14px;color:var(--muted)}
+  .swap-note code{font-family:var(--mono);font-size:12.5px;background:color-mix(in srgb,var(--violet) 12%,white);
+    padding:2px 7px;border-radius:6px;color:var(--violet)}
+  @media (max-width:760px){.lean{grid-template-columns:1fr}.lean-code{border-right:0;border-bottom:1px solid #26263f}}
+
+  /* writing */
+  .posts{display:flex;flex-direction:column;margin-top:34px;border-top:1px solid var(--border)}
+  .post{display:grid;grid-template-columns:120px 1fr auto;gap:24px;align-items:baseline;
+    padding:24px 8px;border-bottom:1px solid var(--border);text-decoration:none;transition:background .18s,padding .18s}
+  .post:hover{background:var(--surface);padding-left:18px;padding-right:18px}
+  .post .date{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+  .post h3{font-size:20px}
+  .post .arw{font-family:var(--mono);color:var(--violet);opacity:0;transition:opacity .18s}
+  .post:hover .arw{opacity:1}
+  @media (max-width:640px){.post{grid-template-columns:1fr;gap:6px}.post .arw{display:none}}
+
+  /* contact / footer */
+  #contact{text-align:center}
+  .big-mail{font-family:var(--disp);font-weight:700;font-size:clamp(26px,5vw,44px);text-decoration:none;
+    display:inline-block;margin:14px 0 30px;background:linear-gradient(92deg,var(--violet),var(--blue),var(--hbo));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .social{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  .social a{font-family:var(--mono);font-size:14px;text-decoration:none;color:var(--muted);
+    border:1px solid var(--border);border-radius:999px;padding:8px 18px;transition:border-color .18s,color .18s}
+  .social a:hover{color:var(--ink);border-color:var(--ink)}
+  footer{padding:40px 0;border-top:1px solid var(--border);color:var(--muted);font-size:13.5px;
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono)}
+  :focus-visible{outline:3px solid var(--blue);outline-offset:3px;border-radius:6px}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top"><span class="glyph" aria-hidden="true"></span>Your Name</a>
+    <nav class="links" id="links">
+      <a href="#about">About</a>
+      <a href="#research">Research</a>
+      <a href="#projects">Projects</a>
+      <a href="#playground">Playground</a>
+      <a href="#writing">Writing</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <button class="menu-btn" id="menuBtn" aria-label="Toggle menu" aria-expanded="false">☰</button>
+  </div>
+</header>
+
+<main id="top">
+  <!-- HERO -->
+  <section class="hero" aria-label="Intro">
+    <canvas id="net" aria-hidden="true"></canvas>
+    <div class="hero-inner">
+      <div class="wrap">
+        <p class="kicker">neuroscience <b>×</b> formal mathematics</p>
+        <h1 class="title">I turn <span class="g1">brain signals</span> into data, and <span class="g2">theorems</span> into machine-checked proof.</h1>
+        <p class="lead">Researcher working on fNIRS &amp; EEG signal processing by day, and contributing manifold theory to Lean's Mathlib by night. A different surface every visit — move your cursor to sweep its height function, and click to change it.</p>
+        <div class="cta-row">
+          <a class="btn primary" href="#projects">See the work →</a>
+          <a class="btn ghost" href="#playground">Step through a proof</a>
+        </div>
+      </div>
+    </div>
+    <div class="scrollcue" aria-hidden="true">scroll<span></span></div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="block" id="about">
+    <div class="wrap">
+      <p class="eyebrow reveal"><span class="dot"></span>Who's behind this</p>
+      <h2 class="reveal">A short version</h2>
+      <div class="about-grid reveal">
+        <div>
+          <p>I'm a researcher who lives in two worlds that turn out to rhyme. In one, I record the brain: near-infrared light and scalp electrodes, then the long, careful work of turning noisy optical traces into something you can trust. In the other, I write mathematics that a computer checks line by line.</p>
+          <p>Both come down to the same instinct — take something that looks like intuition and make it <em>rigorous</em>. A clean preprocessing pipeline and a finished Lean proof scratch the exact same itch.</p>
+          <p>This site is my lab notebook, portfolio, and playground in one. Poke around.</p>
+        </div>
+        <aside class="facts" aria-label="Quick facts">
+          <dl>
+            <div class="row"><dt>Focus</dt><dd>fNIRS · EEG · Lean</dd></div>
+            <div class="row"><dt>Current</dt><dd>Optode montage optimization</dd></div>
+            <div class="row"><dt>Contributing</dt><dd>Mathlib · manifolds</dd></div>
+            <div class="row"><dt>Toolbox</dt><dd>Python · MNE · Lean 4</dd></div>
+            <div class="row"><dt>Based in</dt><dd>Your City</dd></div>
+          </dl>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESEARCH -->
+  <section class="block" id="research">
+    <div class="wrap">
+      <p class="eyebrow reveal"><span class="dot"></span>Research</p>
+      <h2 class="reveal">Reading the brain, honestly</h2>
+      <p class="lede reveal">The signals are small, the noise is large, and the interesting part is everything you do before the statistics. Here's what I spend my time on.</p>
+      <div class="cards">
+        <article class="card reveal"><span class="stripe" style="background:var(--hbo)"></span>
+          <span class="tag t-hbo">fNIRS</span>
+          <h3>Preprocessing that survives review</h3>
+          <p>Optical density → motion correction (TDDR, wavelet, spline) → modified Beer–Lambert → HbO/HbR, with short-separation channels regressing out systemic noise. Reproducible, documented, and boring in the best way.</p>
+        </article>
+        <article class="card reveal"><span class="stripe" style="background:var(--blue)"></span>
+          <span class="tag t-blue">Montage</span>
+          <h3>Optimal optode layouts</h3>
+          <p>Choosing source–detector placements that maximize cortical sensitivity to the regions I care about — while physically sharing the cap with EEG electrodes. A coverage-vs-constraints optimization, not a guess.</p>
+        </article>
+        <article class="card reveal"><span class="stripe" style="background:var(--mint)"></span>
+          <span class="tag t-mint">EEG</span>
+          <h3>Two modalities, one head</h3>
+          <p>Co-registering electrical and hemodynamic signals so they explain each other instead of fighting for scalp real estate.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section class="block" id="projects">
+    <div class="wrap">
+      <p class="eyebrow reveal"><span class="dot"></span>Projects</p>
+      <h2 class="reveal">Things I've built</h2>
+      <div class="cards">
+        <article class="card reveal"><span class="tag t-violet">Open source</span>
+          <h3>montage-opt</h3>
+          <p>A tool that searches source/detector placements for maximum sensitivity under real hardware and EEG-coexistence constraints. Atlas-driven, with Monte-Carlo sensitivity maps.</p>
+        </article>
+        <article class="card reveal"><span class="tag t-hbo">Pipeline</span>
+          <h3>nirs-clean</h3>
+          <p>An opinionated, well-tested fNIRS preprocessing pipeline on top of MNE-NIRS. From raw device export to publication-ready HbO/HbR in one config file.</p>
+        </article>
+        <article class="card reveal"><span class="tag t-amber">This site</span>
+          <h3>signals-and-proofs</h3>
+          <p>The page you're reading — a hand-built, dependency-light personal site with a live generative hero and an interactive Lean proof stepper. Meta, but it counts.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- LEAN PLAYGROUND (signature) -->
+  <section class="block" id="playground">
+    <div class="wrap">
+      <p class="eyebrow reveal"><span class="dot"></span>Signature feature</p>
+      <h2 class="reveal">A proof you can step through</h2>
+      <p class="lede reveal">This is a real Lean 4 proof. Hit <strong>Step</strong> and watch the goal state on the right update exactly as it would in the editor — hypotheses accumulate, cases split, goals close.</p>
+
+      <div class="lean reveal" role="group" aria-label="Interactive Lean proof stepper">
+        <div class="lean-code">
+          <div class="lean-bar">
+            <span class="name">ZeroAdd.lean</span>
+            <span class="dots"><i style="background:var(--hbo)"></i><i style="background:var(--amber)"></i><i style="background:var(--mint)"></i></span>
+          </div>
+          <pre class="code" id="code"></pre>
+        </div>
+        <div class="lean-goal">
+          <div class="goal-head">Lean infoview <span class="pill" id="goalCount">1 goal</span></div>
+          <div class="goals" id="goals"></div>
+          <div class="lean-ctrl">
+            <button id="stepBtn">Step ▸</button>
+            <button id="resetBtn" class="sec">Reset</button>
+            <span class="prog" id="prog">0 / 4</span>
+          </div>
+        </div>
+      </div>
+      <p class="swap-note reveal">Swap the proof in seconds: everything is one array in the source labelled <code>PROOF</code> — drop in your favourite Mathlib lemma (a manifold one, ideally).</p>
+    </div>
+  </section>
+
+  <!-- WRITING -->
+  <section class="block" id="writing">
+    <div class="wrap">
+      <p class="eyebrow reveal"><span class="dot"></span>Writing</p>
+      <h2 class="reveal">Notes &amp; essays</h2>
+      <p class="lede reveal">Half lab notebook, half thinking out loud.</p>
+      <div class="posts reveal">
+        <a class="post" href="#"><span class="date">2026 · 07</span><h3>Why short-separation channels are the whole ballgame in fNIRS</h3><span class="arw">read →</span></a>
+        <a class="post" href="#"><span class="date">2026 · 06</span><h3>Formalizing a tangent space: what Lean taught me about "obvious"</h3><span class="arw">read →</span></a>
+        <a class="post" href="#"><span class="date">2026 · 05</span><h3>Designing a montage two modalities can share</h3><span class="arw">read →</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="block" id="contact">
+    <div class="wrap">
+      <p class="eyebrow reveal" style="justify-content:center"><span class="dot"></span>Say hello</p>
+      <h2 class="reveal">Let's talk signals, or proofs</h2>
+      <a class="big-mail reveal" href="mailto:you@example.com">you@example.com</a>
+      <div class="social reveal">
+        <a href="#">GitHub</a><a href="#">Google Scholar</a><a href="#">Mathlib</a><a href="#">LinkedIn</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap" style="display:flex;justify-content:space-between;width:100%;flex-wrap:wrap;gap:10px">
+    <span>© 2026 Your Name</span>
+    <span>Built by hand — signals &amp; proofs</span>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   1. GENERATIVE HERO — Morse theory on a random surface
+   ------------------------------------------------------------
+   A new surface every load. Tap / click to cycle.
+
+   THE MACHINERY.  Every surface in the family below is a surface
+   of revolution about the z-axis (the axis pointing at the viewer):
+
+       P(u,v) = ( ρ(v)·cos u ,  ρ(v)·sin u ,  ζ(v) )
+
+   and the height function is  h = y = ρ(v)·sin u.  Then
+
+       ∂h/∂u = ρ(v)·cos u        ∂h/∂v = ρ'(v)·sin u
+
+   so away from the axis (ρ > 0) the critical points sit exactly at
+
+       u ∈ {π/2, 3π/2}   and   ρ'(v) = 0
+
+   i.e. the critical points of h are pinned to the critical points
+   of the *profile* ρ — a 1-D problem. At such a point h_uv = 0, so
+   the Hessian is already diagonal:
+
+       h_uu = -ρ·sin u          h_vv = ρ''·sin u
+
+   and the index is read straight off the signs:
+
+       ρ'' < 0  (a bulge)  →  index 2 at u=π/2,  index 0 at u=3π/2
+       ρ'' > 0  (a waist)  →  index 1 at both
+
+   So a surface is defined by ONE function, ρ(v), and everything
+   else — critical points, indices, heights — is derived, not
+   hardcoded. Σ(-1)^index is asserted against χ at startup.
+
+   Caveat on ρ → 0 (the poles of a sphere-type profile): there
+   ∂h/∂u vanishes for every u, but that's the parametrisation
+   degenerating, not a critical point — the pole is a single
+   regular point of h. Those v are excluded from the search.
+
+   PROJECTION is orthographic and the spin is about the vertical
+   y-axis, so screen-vertical is *exactly* h: the sweep is a true
+   horizontal line and the level sets are honest. A perspective
+   camera or an x-tilt would look prettier and quietly lie.
+   ============================================================ */
+(function(){
+  const canvas = document.getElementById('net');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const TAU = Math.PI*2;
+
+  // ---- the family ------------------------------------------------
+  // Only S² and T² are reachable this way: a surface of revolution is
+  // a sphere or a torus. Higher genus needs implicit surfaces — see
+  // IDEAS.md. What we *can* vary is the Morse function, which is the
+  // more interesting half anyway: same space, different critical sets,
+  // same χ every time.
+  const SURFACES = [
+    { name:'S²', desc:'the sphere', chi:2,
+      rho: v => Math.sin(v),
+      zeta:v => Math.cos(v),
+      vRange:[0, Math.PI], vClosed:false },
+
+    { name:'S²', desc:'an ellipsoid', chi:2,
+      rho: v => 0.70*Math.sin(v),
+      zeta:v => 1.45*Math.cos(v),
+      vRange:[0, Math.PI], vClosed:false },
+
+    { name:'S²', desc:'a sphere with a waist', chi:2,
+      rho: v => Math.sin(v)*(1 + 0.90*Math.cos(v)*Math.cos(v)),
+      zeta:v => 1.35*Math.cos(v),
+      vRange:[0, Math.PI], vClosed:false },
+
+    { name:'T²', desc:'the torus', chi:0,
+      rho: v => 1 + 0.42*Math.cos(v),
+      zeta:v => 0.42*Math.sin(v),
+      vRange:[0, TAU], vClosed:true },
+
+    { name:'T²', desc:'a fat torus', chi:0,
+      rho: v => 1 + 0.62*Math.cos(v),
+      zeta:v => 0.62*Math.sin(v),
+      vRange:[0, TAU], vClosed:true },
+
+    { name:'T²', desc:'a rippled torus', chi:0,
+      rho: v => 1 + (0.40*(1 + 0.22*Math.cos(3*v)))*Math.cos(v),
+      zeta:v => (0.40*(1 + 0.22*Math.cos(3*v)))*Math.sin(v),
+      vRange:[0, TAU], vClosed:true }
+  ];
+
+  // ---- derive the critical points of h from the profile ρ ---------
+  const AXIS_EPS = 0.05;   // below this ρ we're at a coordinate singularity
+  function analyse(S){
+    const d = 1e-4;
+    const rp  = v => (S.rho(v+d) - S.rho(v-d)) / (2*d);
+    const rpp = v => (S.rho(v+d) - 2*S.rho(v) + S.rho(v-d)) / (d*d);
+    const [v0,v1] = S.vRange, N = 3000;
+    const period = v1 - v0;
+    // on a closed profile v0 and v1 are the SAME point — dedupe modulo the period
+    const same = (a,b) => {
+      let d = Math.abs(a-b);
+      if(S.vClosed) d = Math.min(d, period - d);
+      return d < 1e-3;
+    };
+    const vs = [];
+    for(let i=0;i<N;i++){
+      const a = v0 + period*i/N, b = v0 + period*(i+1)/N;
+      if(S.rho(a) < AXIS_EPS || S.rho(b) < AXIS_EPS) continue;
+      let fa = rp(a), fb = rp(b);
+      if(fa*fb > 0) continue;
+      let lo=a, hi=b;                                   // bisect to the root
+      for(let k=0;k<50;k++){
+        const m=(lo+hi)/2;
+        if(rp(m)*fa <= 0) hi=m; else { lo=m; fa=rp(m); }
+      }
+      const v = (lo+hi)/2;
+      if(vs.some(x => same(x,v))) continue;             // dedupe
+      vs.push(v);
+    }
+    const crit = [];
+    for(const v of vs){
+      const c2 = rpp(v);
+      if(Math.abs(c2) < 1e-5) continue;                 // degenerate → not Morse
+      for(const u of [Math.PI/2, 3*Math.PI/2]){
+        const s = Math.sin(u) > 0 ? 1 : -1;
+        const huu = -S.rho(v)*s, hvv = c2*s;
+        const idx = (huu < 0 ? 1 : 0) + (hvv < 0 ? 1 : 0);
+        crit.push({ u, v, hv: S.rho(v)*s, idx });
+      }
+    }
+    crit.sort((a,b)=>a.hv-b.hv);
+    // bounds
+    let HMAX = 0, RAD = 0;
+    const M = 400;
+    for(let i=0;i<=M;i++){
+      const v = v0 + (v1-v0)*i/M;
+      HMAX = Math.max(HMAX, Math.abs(S.rho(v)));
+      RAD  = Math.max(RAD, Math.hypot(S.rho(v), S.zeta(v)));
+    }
+    const euler = crit.reduce((a,k)=>a + (k.idx===1 ? -1 : 1), 0);
+    return { crit, HMAX, RAD, euler };
+  }
+
+  const COL = ['#10C8A0','#FFB703','#FB5C7D'];              // index 0 / 1 / 2
+  const NAMES = ['min','saddle','max'];
+
+  let S, A, NU = 60, NV = 26;
+  function pick(i){
+    S = SURFACES[i !== undefined ? i : Math.floor(Math.random()*SURFACES.length)];
+    A = analyse(S);
+    NV = S.vClosed ? 26 : 22;
+    level = targetLevel = -A.HMAX*1.1;                      // start below everything
+  }
+
+  function P(u,v){ const p = S.rho(v); return [ p*Math.cos(u), p*Math.sin(u), S.zeta(v) ]; }
+  function rot(p,a){ const c=Math.cos(a), s=Math.sin(a); return [ p[0]*c + p[2]*s, p[1], -p[0]*s + p[2]*c ]; }
+
+  // height → colour: blue (low) · violet · coral (high)
+  const STOPS = [[58,134,255],[124,58,237],[251,92,125]];
+  function ramp(hv){
+    const s = Math.max(0, Math.min(1, (hv + A.HMAX)/(2*A.HMAX)));
+    const k = s*(STOPS.length-1), i = Math.min(STOPS.length-2, Math.floor(k)), f = k-i;
+    const a = STOPS[i], b = STOPS[i+1];
+    return `rgb(${Math.round(a[0]+(b[0]-a[0])*f)},${Math.round(a[1]+(b[1]-a[1])*f)},${Math.round(a[2]+(b[2]-a[2])*f)})`;
+  }
+
+  let w, h, dpr, raf, theta = 0.6, t = 0;
+  let level = 0, targetLevel = 0, spin = 0.0035;
+  const pointer = { active:false, x:0, y:0 };
+  let scale = 120, cx = 0, cy = 0, narrow = false;
+
+  function size(){
+    dpr = Math.min(devicePixelRatio||1, 2);
+    w = canvas.clientWidth; h = canvas.clientHeight;
+    canvas.width = w*dpr; canvas.height = h*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    narrow = w < 820;
+    const fit = narrow ? Math.min(h*0.28, w*0.42) : Math.min(h*0.44, w*0.26);
+    scale = fit / A.RAD;
+    if(narrow){ cx = w*0.5;  cy = h*0.40; }
+    else      { cx = w*0.73; cy = h*0.50; }
+  }
+  const sx = p => cx + p[0]*scale;
+  const sy = p => cy - p[1]*scale;
+
+  function strokeCurve(pts){
+    for(let i=0;i<pts.length-1;i++){
+      const p = pts[i], q = pts[i+1];
+      const hv = (p[1]+q[1])/2;
+      const front = ((p[2]+q[2])/2 + A.RAD)/(2*A.RAD);
+      const inSub = hv <= level;
+      ctx.strokeStyle = ramp(hv);
+      ctx.globalAlpha = inSub ? (0.16 + 0.52*front) : (0.04 + 0.09*front);
+      ctx.lineWidth   = inSub ? (0.5 + 1.0*front) : 0.5;
+      ctx.beginPath(); ctx.moveTo(sx(p), sy(p)); ctx.lineTo(sx(q), sy(q)); ctx.stroke();
+    }
+  }
+
+  function frame(){
+    t += 0.016;
+    if(!reduce) theta += spin;
+
+    if(pointer.active){
+      targetLevel = (0.5 - pointer.y/h) * 2 * A.HMAX * 1.15;
+      spin = 0.0035 + (pointer.x/w - 0.5)*0.011;
+    } else {
+      targetLevel = Math.sin(t*0.30) * A.HMAX * 1.04;
+      spin = 0.0035;
+    }
+    targetLevel = Math.max(-A.HMAX*1.12, Math.min(A.HMAX*1.12, targetLevel));
+    level += (targetLevel - level) * (reduce ? 1 : 0.07);
+
+    ctx.clearRect(0,0,w,h);
+
+    // ---- the sweep: a true horizontal line, because screen-vertical IS h
+    const py = cy - level*scale;
+    ctx.strokeStyle = '#16162A'; ctx.globalAlpha = 0.20; ctx.lineWidth = 1;
+    ctx.setLineDash([5,7]); ctx.beginPath();
+    ctx.moveTo(0, py); ctx.lineTo(w, py); ctx.stroke(); ctx.setLineDash([]);
+    ctx.globalAlpha = 0.5; ctx.fillStyle = '#5A5A74';
+    ctx.font = '500 11px ui-monospace, "JetBrains Mono", monospace';
+    ctx.fillText(`a = ${level.toFixed(2)}`, 14, py - 7);
+    ctx.globalAlpha = 1;
+
+    const [v0,v1] = S.vRange;
+    // ---- meridians (u fixed): the profile curve, rotated
+    for(let i=0;i<NU;i++){
+      const u = i/NU*TAU, pts=[];
+      for(let j=0;j<=NV;j++) pts.push(rot(P(u, v0 + (v1-v0)*j/NV), theta));
+      strokeCurve(pts);
+    }
+    // ---- parallels (v fixed): circles about the axis
+    for(let j=0;j<=NV;j++){
+      const v = v0 + (v1-v0)*j/NV;
+      if(S.rho(v) < AXIS_EPS) continue;                 // skip the poles
+      if(S.vClosed && j===NV) continue;
+      const pts=[];
+      for(let i=0;i<=NU;i++) pts.push(rot(P(i/NU*TAU, v), theta));
+      strokeCurve(pts);
+    }
+
+    // ---- the critical points
+    for(const k of A.crit){
+      const p = rot(P(k.u,k.v), theta);
+      const X = sx(p), Y = sy(p);
+      const front  = (p[2] + A.RAD)/(2*A.RAD);
+      const passed = level >= k.hv;
+      const near   = Math.max(0, 1 - Math.abs(level - k.hv)*(3.0/A.HMAX*1.42));
+      const c = COL[k.idx];
+
+      if(near > 0.01){
+        ctx.beginPath(); ctx.fillStyle = c; ctx.globalAlpha = 0.15*near;
+        ctx.arc(X, Y, 9 + 26*near, 0, TAU); ctx.fill();
+      }
+      ctx.beginPath();
+      ctx.fillStyle = passed ? c : '#F2F1FA';
+      ctx.globalAlpha = 0.45 + 0.55*front;
+      ctx.arc(X, Y, 4.2 + 2.0*near, 0, TAU); ctx.fill();
+      ctx.lineWidth = 1.6; ctx.strokeStyle = c;
+      ctx.globalAlpha = 0.5 + 0.5*front; ctx.stroke();
+
+      if(near > 0.3 && !narrow){
+        ctx.globalAlpha = near; ctx.fillStyle = c;
+        ctx.font = '600 10.5px ui-monospace, "JetBrains Mono", monospace';
+        ctx.fillText(`index ${k.idx} · ${NAMES[k.idx]}`, X + 13, Y - 10);
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // ---- the tally:  Σ (-1)^index  =  χ,  once the sweep clears the top
+    const b = [0,0,0];
+    let n = 0;
+    for(const k of A.crit) if(level >= k.hv){ b[k.idx]++; n++; }
+    ctx.globalAlpha = 0.7; ctx.fillStyle = '#5A5A74';
+    ctx.font = '500 11px ui-monospace, "JetBrains Mono", monospace';
+    const total = A.crit.length;
+    ctx.fillText(
+      narrow
+        ? `${S.name} · ${n}/${total} · c₀=${b[0]} c₁=${b[1]} c₂=${b[2]} · χ=${b[0]-b[1]+b[2]}`
+        : `${S.name} — ${S.desc}   ·   critical points passed ${n}/${total}   ·   c₀=${b[0]}  c₁=${b[1]}  c₂=${b[2]}   ·   c₀ − c₁ + c₂ = ${b[0]-b[1]+b[2]}`,
+      14, h - 18
+    );
+    ctx.globalAlpha = 0.45;
+    const hint = narrow ? 'tap to change' : 'click to change surface';
+    ctx.fillText(hint, w - ctx.measureText(hint).width - 14, h - 18);
+    ctx.globalAlpha = 1;
+
+    if(!reduce) raf = requestAnimationFrame(frame);
+  }
+
+  function start(){ size(); if(raf) cancelAnimationFrame(raf); reduce ? frame() : (raf = requestAnimationFrame(frame)); }
+
+  pick();
+  addEventListener('resize', ()=>{ clearTimeout(window.__rz); window.__rz = setTimeout(start, 180); });
+  addEventListener('pointermove', e=>{
+    const rc = canvas.getBoundingClientRect();
+    pointer.x = e.clientX - rc.left; pointer.y = e.clientY - rc.top;
+    pointer.active = pointer.y > 0 && pointer.y < h;
+  });
+  addEventListener('pointerleave', ()=>{ pointer.active = false; });
+  canvas.addEventListener('click', ()=>{
+    const i = (SURFACES.indexOf(S) + 1) % SURFACES.length;
+    pick(i); size(); if(reduce) frame();
+  });
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden){ cancelAnimationFrame(raf); }
+    else if(!reduce){ raf = requestAnimationFrame(frame); }
+  });
+  start();
+})();
+
+/* ============================================================
+   2. SCROLL REVEAL
+   ============================================================ */
+(function(){
+  const els=document.querySelectorAll('.reveal');
+  if(!('IntersectionObserver' in window)){els.forEach(e=>e.classList.add('in'));return;}
+  const io=new IntersectionObserver((ents)=>{
+    ents.forEach(en=>{ if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);} });
+  },{threshold:.12});
+  els.forEach(e=>io.observe(e));
+})();
+
+/* ============================================================
+   3. MOBILE NAV
+   ============================================================ */
+(function(){
+  const btn=document.getElementById('menuBtn'), links=document.getElementById('links');
+  btn.addEventListener('click',()=>{const open=links.classList.toggle('open');btn.setAttribute('aria-expanded',open);});
+  links.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{links.classList.remove('open');btn.setAttribute('aria-expanded',false);}));
+})();
+
+/* ============================================================
+   4. LEAN PROOF STEPPER  (the signature feature)
+   To use your own proof: replace CODE (display lines, syntax-
+   highlighted) and PROOF (goal state after each step). They
+   must have the same length. Goal = {case?, hyps:[], target}.
+   ============================================================ */
+(function(){
+  // ---- display lines (already syntax-highlighted) ----
+  const CODE = [
+    `<span class="kw">theorem</span> <span class="fn">zero_add</span> (n : <span class="ty">ℕ</span>) : <span class="num">0</span> <span class="op">+</span> n <span class="op">=</span> n := <span class="kw">by</span>`,
+    `  <span class="kw">induction</span> n <span class="kw">with</span>`,
+    `  <span class="op">|</span> <span class="fn">zero</span> <span class="op">=></span> <span class="kw">rfl</span>`,
+    `  <span class="op">|</span> <span class="fn">succ</span> k ih <span class="op">=></span> <span class="kw">rw</span> [<span class="ty">Nat.add_succ</span>, ih]`
+  ];
+
+  // ---- goal state AFTER executing each line ----
+  const PROOF = [
+    { goals:[ {hyps:["n : ℕ"], target:"0 + n = n"} ] },
+    { goals:[
+        {case:"zero", hyps:[], target:"0 + 0 = 0"},
+        {case:"succ", hyps:["k : ℕ","ih : 0 + k = k"], target:"0 + (k + 1) = k + 1"}
+      ] },
+    { goals:[
+        {case:"succ", hyps:["k : ℕ","ih : 0 + k = k"], target:"0 + (k + 1) = k + 1"}
+      ] },
+    { goals:[] } // no goals — done
+  ];
+
+  const codeEl=document.getElementById('code');
+  const goalsEl=document.getElementById('goals');
+  const countEl=document.getElementById('goalCount');
+  const progEl=document.getElementById('prog');
+  const stepBtn=document.getElementById('stepBtn');
+  const resetBtn=document.getElementById('resetBtn');
+  let step=0; // number of lines executed (0..CODE.length)
+
+  function renderCode(){
+    codeEl.innerHTML = CODE.map((line,i)=>{
+      let cls='ln';
+      if(i===step) cls+=' active';        // line about to run / just ran
+      else if(i<step) cls+=' done';
+      return `<span class="${cls}">${line || ' '}</span>`;
+    }).join('');
+  }
+
+  function renderGoals(){
+    const state = step===0 ? PROOF[0] : PROOF[step-1];
+    const goals = state.goals;
+    if(goals.length===0){
+      countEl.textContent='0 goals';
+      goalsEl.innerHTML = `<div class="solved">🎉 no goals — <span style="font-family:var(--disp)">Q.E.D.</span></div>`;
+      return;
+    }
+    countEl.textContent = goals.length===1 ? '1 goal' : goals.length+' goals';
+    goalsEl.innerHTML = goals.map(g=>{
+      const cs = g.case ? `<span class="case">case ${g.case}</span>` : '';
+      const hy = g.hyps.map(x=>`<div class="hyp">${x}</div>`).join('');
+      return `<div class="goal">${cs}${hy}<div><span class="turn">⊢</span> <span class="tgt">${g.target}</span></div></div>`;
+    }).join('');
+  }
+
+  function sync(){
+    renderCode(); renderGoals();
+    progEl.textContent = `${step} / ${CODE.length}`;
+    stepBtn.disabled = step>=CODE.length;
+    stepBtn.textContent = step>=CODE.length ? 'Done ✓' : 'Step ▸';
+  }
+  function doStep(){ if(step<CODE.length){ step++; sync(); } }
+  function reset(){ step=0; sync(); }
+
+  stepBtn.addEventListener('click',doStep);
+  resetBtn.addEventListener('click',reset);
+  // keyboard: Enter/Space on the stepper steps forward
+  document.getElementById('playground').addEventListener('keydown',e=>{
+    if((e.key==='Enter'||e.key===' ') && document.activeElement===stepBtn){ /* native */ }
+  });
+  reset();
+})();
+</script>
+</body>
+</html>
