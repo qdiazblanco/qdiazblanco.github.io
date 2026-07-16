@@ -49,6 +49,10 @@ export function initHero(): void {
   });
   if (surfaces.length === 0) return;
 
+  // must be the SAME measurement as Hero.astro's @media (max-width: 820px),
+  // or CSS and canvas disagree in the scrollbar-width window
+  const narrowMq = matchMedia('(max-width: 820px)');
+
   let S: Surface = surfaces[0]!;
   let A: Analysis = analyse(S);
   let NU = 60;
@@ -73,7 +77,7 @@ export function initHero(): void {
     canvas!.width = w * dpr;
     canvas!.height = h * dpr;
     ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
-    narrow = w < 820;
+    narrow = narrowMq.matches;
     // fewer polylines on phones — same math, lighter frames
     NU = narrow ? 44 : 60;
     NV = S.vClosed ? (narrow ? 22 : 26) : (narrow ? 18 : 22);
@@ -129,12 +133,15 @@ export function initHero(): void {
 
   function frame(now = 0): void {
     if (!reduce) raf = requestAnimationFrame(frame);
-    // cap phones at ~33fps; t advances by wall-clock share so the idle
-    // sweep runs at the same visible speed as at 60fps
-    if (narrow && now - lastDraw < 30) return;
-    t += narrow ? 0.032 : 0.016;
+    // cap phones at ~30fps — but never skip in reduce mode, where every
+    // call is a direct "draw one honest frame" request (tap, resize)
+    if (!reduce && narrow && now - lastDraw < 30) return;
+    // at half the frame rate, advance both clocks twice as far so the
+    // sweep AND the rotation run at the same visible speed as at 60fps
+    const clock = narrow ? 2 : 1;
+    t += 0.016 * clock;
     lastDraw = now;
-    if (!reduce) theta += spin;
+    if (!reduce) theta += spin * clock;
 
     if (pointer.active) {
       targetLevel = (0.5 - pointer.y / h) * 2 * A.HMAX * 1.15;
@@ -143,7 +150,10 @@ export function initHero(): void {
       targetLevel = Math.sin(t * 0.3) * A.HMAX * 1.04;
       spin = 0.0035;
     }
-    targetLevel = Math.max(-A.HMAX * 1.12, Math.min(A.HMAX * 1.12, targetLevel));
+    // narrow: tighter clamp keeps the (always-truthful) sweep line from
+    // striking through the tally text at the bottom of the reserved band
+    const amp = narrow ? 1.04 : 1.12;
+    targetLevel = Math.max(-A.HMAX * amp, Math.min(A.HMAX * amp, targetLevel));
     level += (targetLevel - level) * (reduce ? 1 : 0.07);
 
     ctx!.clearRect(0, 0, w, h);
@@ -264,6 +274,7 @@ export function initHero(): void {
     clearTimeout(resizeTimer);
     resizeTimer = window.setTimeout(start, 180);
   });
+  narrowMq.addEventListener('change', start);
   addEventListener('pointermove', (e) => {
     const rc = canvas!.getBoundingClientRect();
     pointer.x = e.clientX - rc.left;
