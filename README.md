@@ -33,21 +33,3 @@ satisfy Σ(-1)^index = χ. CI runs this before every deploy.
 
 Push to `main`. GitHub Actions builds the site and deploys it to
 https://qdiazblanco.github.io automatically (see `.github/workflows/deploy.yml`).
-
-## Where things live (a map for future me)
-
-| What | Where |
-| --- | --- |
-| Colors, fonts, spacing — all of them | `src/styles/tokens.css` |
-| Shared CSS (buttons, cards, sections) | `src/styles/global.css` |
-| Page shell (head, nav, footer) | `src/layouts/Base.astro` |
-| Page sections | `src/components/*.astro` |
-| Hero math (surfaces, critical points) | `src/lib/morse.ts` (+ tests) |
-| Hero drawing | `src/scripts/hero.ts` |
-| Lean proofs for the stepper | `src/data/proofs/` |
-| Original design sketch | `reference/index.html` (never deployed) |
-
-To change a color: edit it in `tokens.css` and nowhere else — the hero
-canvas reads the same variables. To swap the stepper's proof: copy
-`src/data/proofs/zero-add.ts`, follow its header comment, and **verify the
-new proof with a real Lean compiler first**.

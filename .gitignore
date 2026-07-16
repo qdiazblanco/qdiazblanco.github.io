@@ -25,3 +25,10 @@ pnpm-debug.log*
 
 # session-local scratch
 prompt.txt
+
+# private working notes — kept local, never committed
+PROJECT_BRIEF.md
+CLAUDE.md
+IDEAS.md
+GUIDE.md
+BUILD-YOUR-OWN.md
