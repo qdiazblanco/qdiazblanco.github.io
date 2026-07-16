@@ -1,0 +1,72 @@
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top"><span class="glyph" aria-hidden="true"></span>Enrique Díaz Blanco</a>
+    <nav class="links" id="links">
+      <a href="#about">About</a>
+      <a href="#playground">Playground</a>
+      <a href="#work">Day job</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <button class="menu-btn" id="menuBtn" aria-label="Toggle menu" aria-expanded="false">☰</button>
+  </div>
+</header>
+
+<style>
+  header.nav {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: saturate(1.4) blur(10px);
+    background: color-mix(in srgb, var(--bg) 78%, transparent);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 64px }
+  .brand {
+    font-family: var(--disp); font-weight: 700; font-size: 18px; letter-spacing: -.02em; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 10px;
+  }
+  .brand .glyph {
+    width: 22px; height: 22px; border-radius: 7px;
+    background: conic-gradient(from 210deg, var(--hbo), var(--amber), var(--mint), var(--blue), var(--violet), var(--hbo));
+  }
+  nav.links { display: flex; gap: 26px }
+  nav.links a {
+    font-size: 14.5px; font-weight: 500; text-decoration: none; color: var(--muted);
+    padding: 6px 2px; position: relative; transition: color .18s;
+  }
+  nav.links a:hover { color: var(--ink) }
+  nav.links a::after {
+    content: ""; position: absolute; left: 0; right: 100%; bottom: 0; height: 2px; border-radius: 2px;
+    background: var(--violet); transition: right .22s ease;
+  }
+  nav.links a:hover::after { right: 0 }
+  .menu-btn {
+    display: none; background: none; border: 1px solid var(--border); border-radius: 10px;
+    width: 44px; height: 44px; cursor: pointer; color: var(--ink); font-size: 18px;
+  }
+  @media (max-width: 720px) {
+    nav.links {
+      position: fixed; inset: 64px 0 auto 0; flex-direction: column; gap: 0; background: var(--surface);
+      border-bottom: 1px solid var(--border); padding: 8px 24px 16px; transform: translateY(-140%); transition: transform .28s ease;
+    }
+    nav.links.open { transform: translateY(0) }
+    nav.links a { padding: 12px 0; border-bottom: 1px solid var(--border) }
+    .menu-btn { display: block }
+  }
+  @media (prefers-reduced-motion: reduce) { nav.links { transition: none } }
+</style>
+
+<script>
+  const btn = document.getElementById('menuBtn');
+  const links = document.getElementById('links');
+  if (btn && links) {
+    btn.addEventListener('click', () => {
+      const open = links.classList.toggle('open');
+      btn.setAttribute('aria-expanded', String(open));
+    });
+    links.querySelectorAll('a').forEach((a) =>
+      a.addEventListener('click', () => {
+        links.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+      }),
+    );
+  }
+</script>

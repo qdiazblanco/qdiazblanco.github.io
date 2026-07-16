@@ -1,0 +1,25 @@
+/* Design tokens — THE single place for colors, fonts and layout constants.
+   The hero canvas reads these custom properties at runtime (see
+   src/scripts/hero.ts); never duplicate a hex value in JS. */
+:root {
+  /* color */
+  --bg: #F2F1FA;       /* pale periwinkle paper */
+  --surface: #FFFFFF;
+  --ink: #16162A;      /* deep indigo ink, not pure black */
+  --muted: #5A5A74;
+  --border: #E6E4F2;
+  --hbo: #FB5C7D;      /* coral — high end of the signal ramp */
+  --blue: #3A86FF;     /* blue — low end of the signal ramp */
+  --violet: #7C3AED;   /* proofs / Lean */
+  --mint: #10C8A0;
+  --amber: #FFB703;
+
+  /* type */
+  --disp: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* layout */
+  --maxw: 1100px;
+  --radius: 18px;
+}
