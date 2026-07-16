@@ -13,6 +13,10 @@
   --violet: #7C3AED;   /* proofs / Lean */
   --mint: #10C8A0;
   --amber: #FFB703;
+  /* hand-darkened text variants for use ON pale mint/amber tints —
+     the base colors don't meet contrast there */
+  --mint-ink: #08926f;
+  --amber-ink: #a9760a;
 
   /* type */
   --disp: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;

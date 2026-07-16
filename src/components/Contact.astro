@@ -22,14 +22,18 @@
 <style>
   #contact { text-align: center }
   .big-mail {
-    font-family: var(--disp); font-weight: 700; font-size: clamp(26px, 5vw, 44px); text-decoration: none;
+    /* lower floor + overflow-wrap: the real address is longer than the
+       sketch's placeholder and must survive 320px-class screens */
+    font-family: var(--disp); font-weight: 700; font-size: clamp(20px, 6.5vw, 44px); text-decoration: none;
+    overflow-wrap: anywhere;
     display: inline-block; margin: 14px 0 30px; background: linear-gradient(92deg, var(--violet), var(--blue), var(--hbo));
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
   .social { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap }
   .social a {
     font-family: var(--mono); font-size: 14px; text-decoration: none; color: var(--muted);
-    border: 1px solid var(--border); border-radius: 999px; padding: 12px 18px; transition: border-color .18s, color .18s;
+    border: 1px solid var(--border); border-radius: 999px; transition: border-color .18s, color .18s;
+    padding: 12px 18px; /* taller than the sketch's 8px on purpose: phone tap-target floor */
   }
   .social a:hover { color: var(--ink); border-color: var(--ink) }
 </style>

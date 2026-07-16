@@ -46,8 +46,13 @@ export function initStepper(): void {
     renderCode();
     renderGoals();
     progEl!.textContent = `${step} / ${CODE.length}`;
-    stepBtn!.disabled = step >= CODE.length;
-    stepBtn!.textContent = step >= CODE.length ? 'Done ✓' : 'Step ▸';
+    const done = step >= CODE.length;
+    // disabling a focused button silently drops keyboard focus to <body>;
+    // hand it to Reset instead so a keyboard user keeps their place
+    const hadFocus = document.activeElement === stepBtn;
+    stepBtn!.disabled = done;
+    stepBtn!.textContent = done ? 'Done ✓' : 'Step ▸';
+    if (done && hadFocus) resetBtn!.focus();
   }
 
   stepBtn.addEventListener('click', () => {

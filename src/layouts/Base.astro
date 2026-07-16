@@ -34,8 +34,10 @@ const {
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
-    <script>
-      // stamp early so CSS can hide .reveal only when JS will reveal it again
+    <script is:inline>
+      // is:inline is required: a bare script becomes a deferred module and
+      // would stamp too late — this must run during parsing, before first
+      // paint, so CSS hides .reveal only when JS will reveal it again
       document.documentElement.classList.add('js');
     </script>
   </head>
