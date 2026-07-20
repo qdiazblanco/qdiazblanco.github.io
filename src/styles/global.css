@@ -66,10 +66,11 @@ html.js .reveal.in { opacity: 1; transform: none }
 .card h3 { font-size: 22px; margin-bottom: 10px }
 .card p { color: var(--muted); margin: 0; font-size: 15.5px }
 .card .stripe { position: absolute; left: 0; top: 0; bottom: 0; width: 5px }
-/* tints mix with --surface, not white, so they adapt to the dark theme */
-.t-hbo { background: color-mix(in srgb, var(--hbo) 15%, var(--surface)); color: var(--hbo) }
-.t-blue { background: color-mix(in srgb, var(--blue) 14%, var(--surface)); color: var(--blue) }
-.t-violet { background: color-mix(in srgb, var(--violet) 14%, var(--surface)); color: var(--violet) }
+/* tints mix with --surface (not white) so they adapt to dark; text uses the
+   darkened/brightened *-ink accents so small pill labels meet WCAG AA */
+.t-hbo { background: color-mix(in srgb, var(--hbo) 15%, var(--surface)); color: var(--hbo-ink) }
+.t-blue { background: color-mix(in srgb, var(--blue) 14%, var(--surface)); color: var(--blue-ink) }
+.t-violet { background: color-mix(in srgb, var(--violet) 14%, var(--surface)); color: var(--violet-ink) }
 .t-mint { background: color-mix(in srgb, var(--mint) 16%, var(--surface)); color: var(--mint-ink) }
 .t-amber { background: color-mix(in srgb, var(--amber) 20%, var(--surface)); color: var(--amber-ink) }
 

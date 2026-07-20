@@ -17,15 +17,19 @@
   --muted: #5A5A74;
   --border: #E6E4F2;
 
-  /* playful accents — kept vivid in BOTH themes */
+  /* playful accents — kept vivid in BOTH themes; used for tints & graphics */
   --hbo: #FB5C7D;      /* coral — high end of the signal ramp */
   --blue: #3A86FF;     /* blue — low end of the signal ramp */
   --violet: #7C3AED;   /* proofs / Lean */
   --mint: #10C8A0;
   --amber: #FFB703;
-  /* darkened accent text for use ON pale tints (contrast) */
-  --mint-ink: #08926f;
-  --amber-ink: #a9760a;
+  /* darkened accent *text* for use ON the pale/dark tag tints — the raw
+     accents are too light to meet WCAG AA as small pill text */
+  --hbo-ink: #C42A5A;
+  --blue-ink: #1D4ED8;
+  --violet-ink: #6A28C4;
+  --mint-ink: #05715A;
+  --amber-ink: #8A5F00;
 
   /* the Lean code panel — a dark "editor" surface in both themes */
   --panel: #0f0f1e;
@@ -53,11 +57,15 @@
   --muted: #A0A0C4;
   --border: #302E52;
   --violet: #9F6BFF;   /* brightened so it reads on dark */
+  /* brightened accent text so the pills still meet contrast on dark tints */
+  --hbo-ink: #FF8FA3;
+  --blue-ink: #7FB0FF;
+  --violet-ink: #C4A6FF;
   --mint-ink: #38DCB0;
   --amber-ink: #FFC24D;
-  /* panel goes a touch lighter than the sketch dark so it lifts off --bg */
-  --panel: #14132A;
-  --panel-2: #1A1934;
+  /* the editor panel stays clearly darker than --bg so it reads as inset */
+  --panel: #0E0D1C;
+  --panel-2: #17162E;
   --panel-border: #34335A;
 }
 
@@ -71,10 +79,13 @@
     --muted: #A0A0C4;
     --border: #302E52;
     --violet: #9F6BFF;
+    --hbo-ink: #FF8FA3;
+    --blue-ink: #7FB0FF;
+    --violet-ink: #C4A6FF;
     --mint-ink: #38DCB0;
     --amber-ink: #FFC24D;
-    --panel: #14132A;
-    --panel-2: #1A1934;
+    --panel: #0E0D1C;
+    --panel-2: #17162E;
     --panel-border: #34335A;
   }
 }
