@@ -16,7 +16,7 @@ const d = post.data;
 const growthGlyph = { seedling: '🌱', growing: '🌿', evergreen: '🌲' } as const;
 ---
 
-<Base title={`${d.title} — Enrique Díaz Blanco`} description={d.description}>
+<Base title={`${d.title} — Enrique Díaz Blanco`} description={d.description} ogType="article">
   <article class="block post-page">
     <div class="wrap">
       <header class="post-head reveal">
@@ -36,7 +36,7 @@ const growthGlyph = { seedling: '🌱', growing: '🌿', evergreen: '🌲' } as 
       <div class="prose reveal">
         <Content />
       </div>
-      <p class="back reveal"><a href="/notebook">← all notes &amp; essays</a></p>
+      <p class="back reveal"><a href="/notebook/">← all notes &amp; essays</a></p>
     </div>
   </article>
 </Base>

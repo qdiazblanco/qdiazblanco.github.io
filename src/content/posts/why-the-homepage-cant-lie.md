@@ -47,7 +47,7 @@ D^{k} @>>> M_{a+\varepsilon}
 $$
 
 And because this site is also a Lean notebook: the proof stepper on the
-[See a proof](/lean-proof) page runs the same policy. What it displays was
+[See a proof](/lean-proof/) page runs the same policy. What it displays was
 checked by a real compiler before it shipped — this exact file compiles:
 
 ```lean

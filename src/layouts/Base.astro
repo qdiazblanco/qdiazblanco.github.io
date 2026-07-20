@@ -18,10 +18,16 @@ import Footer from '../components/Footer.astro';
 interface Props {
   title?: string;
   description?: string;
+  /** posts pass 'article' for nicer link previews */
+  ogType?: 'website' | 'article';
+  /** error pages opt out of indexing (their canonical URL never returns 200) */
+  noindex?: boolean;
 }
 const {
   title = 'Enrique Díaz Blanco — proofs & signals',
   description = 'Formal mathematics in Lean 4 — manifolds and Morse theory — plus fNIRS/EEG signal processing. A digital notebook, learning in public.',
+  ogType = 'website',
+  noindex = false,
 } = Astro.props;
 ---
 
@@ -32,11 +38,12 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
     <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="alternate" type="application/rss+xml" title="Enrique Díaz Blanco — proofs & signals" href="/rss.xml" />
     <!-- link previews (Slack/Zulip/WhatsApp/X…) -->
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content="Enrique Díaz Blanco — proofs & signals" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
@@ -85,7 +92,10 @@ const {
                 io.unobserve(en.target);
               }
           },
-          { threshold: 0.12 },
+          // threshold 0 (any visible pixel): a fractional threshold can NEVER
+          // fire for elements taller than ~1/threshold viewports — a whole
+          // long post wrapped in .reveal would stay invisible forever
+          { threshold: 0 },
         );
         els.forEach((e) => io.observe(e));
       }

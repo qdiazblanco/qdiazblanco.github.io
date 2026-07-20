@@ -1,7 +1,8 @@
 <section class="block" id="about">
   <div class="wrap">
     <p class="eyebrow reveal"><span class="dot"></span>Who's behind this</p>
-    <h2 class="reveal">A short version</h2>
+    <!-- h1: this component only renders on /about, and it's the page heading -->
+    <h1 class="reveal about-h1">A short version</h1>
     <div class="about-grid reveal">
       <div>
         <p>
@@ -59,6 +60,7 @@
 </section>
 
 <style>
+  .about-h1 { font-size: clamp(30px, 4.6vw, 46px) } /* same scale the h2 had */
   .about-grid { display: grid; grid-template-columns: 1.3fr .9fr; gap: 48px; align-items: start; margin-top: 34px }
   .thesis {
     margin-top: 40px; border: 1px solid var(--border); border-radius: var(--radius);
@@ -69,7 +71,10 @@
   .t-abs { color: var(--muted); font-size: 15.5px; margin: 0 0 18px }
   .t-links { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin: 0 }
   .t-btn { font-size: 14.5px; padding: 10px 18px }
-  .t-src { font-family: var(--mono); font-size: 13px; color: var(--muted) }
+  .t-src {
+    font-family: var(--mono); font-size: 13px; color: var(--muted);
+    display: inline-flex; align-items: center; min-height: 44px; /* tap-target floor */
+  }
   .t-src:hover { color: var(--violet) }
   .about-grid p { margin: 0 0 18px }
   .facts { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 22px }

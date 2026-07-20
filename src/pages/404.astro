@@ -2,7 +2,7 @@
 import Base from '../layouts/Base.astro';
 ---
 
-<Base title="404 — Enrique Díaz Blanco" description="This level set is empty.">
+<Base title="404 — Enrique Díaz Blanco" description="This level set is empty." noindex>
   <section class="block nf">
     <div class="wrap">
       <p class="eyebrow"><span class="dot"></span>404</p>
@@ -13,7 +13,7 @@ import Base from '../layouts/Base.astro';
       </p>
       <div class="cta-row">
         <a class="btn primary" href="/">Back to the surface →</a>
-        <a class="btn ghost" href="/notebook">Read the notebook</a>
+        <a class="btn ghost" href="/notebook/">Read the notebook</a>
       </div>
     </div>
   </section>
@@ -25,7 +25,8 @@ import Base from '../layouts/Base.astro';
   .lede code {
     font-family: var(--mono); font-size: .85em;
     background: color-mix(in srgb, var(--violet) 12%, var(--surface));
-    color: var(--violet); padding: 2px 8px; border-radius: 6px;
+    color: var(--violet-ink); /* raw violet is 4.0:1 on this tint in dark — AA needs 4.5 */
+    padding: 2px 8px; border-radius: 6px;
   }
   .cta-row { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px }
 </style>

@@ -25,11 +25,11 @@
 
 .prose img { max-width: 100%; height: auto; border-radius: 12px }
 
-/* inline code */
+/* inline code — *-ink violet: the raw accent misses AA on this tint in dark */
 .prose :not(pre) > code {
   font-family: var(--mono); font-size: .86em;
   background: color-mix(in srgb, var(--violet) 10%, var(--surface));
-  color: var(--violet); padding: 2px 6px; border-radius: 6px;
+  color: var(--violet-ink); padding: 2px 6px; border-radius: 6px;
 }
 
 /* code blocks — Shiki emits its own theme background; we pin it to the

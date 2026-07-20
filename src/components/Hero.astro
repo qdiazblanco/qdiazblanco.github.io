@@ -29,11 +29,11 @@ const groups = [
         processing in Python by day. This site is my notebook: notes published while I learn.
       </p>
       <div class="cta-row">
-        <a class="btn primary" href="/lean-proof">See a proof →</a>
-        <a class="btn ghost" href="/about">More about me</a>
+        <a class="btn primary" href="/lean-proof/">See a proof →</a>
+        <a class="btn ghost" href="/about/">More about me</a>
       </div>
       <!-- honest state-of-the-site note, requested by Quique -->
-      <p class="wip">🌱 Work in progress — this site is young and not yet a fair mirror of what I do. More soon.</p>
+      <p class="wip">🌱 Work in progress — this site is young and not yet a fair mirror of what I do.</p>
     </div>
 
     <div class="hero-controls" id="heroControls">
@@ -155,11 +155,15 @@ const groups = [
   .hc-level { color: var(--ink) }
   #hcSlider { width: 100%; accent-color: var(--violet); height: 26px; cursor: pointer; margin: 0 }
   /* on mouse desktops the cursor itself sweeps the level — the slider is
-     redundant there. It STAYS wherever touch is the pointer, and for
-     reduced-motion users (their cursor sweep is disabled — the slider is
-     their only way to move the level). */
+     visually hidden there (per Quique) but stays FOCUSABLE and reappears on
+     keyboard focus: hover can't be assumed to imply a usable mouse, and the
+     slider is the only non-pointer sweep control (WCAG 2.1.1). It stays fully
+     visible wherever touch is the pointer and for reduced-motion users. */
   @media (min-width: 821px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-    .hc-sweep { display: none }
+    .hc-sweep:not(:focus-within) {
+      position: absolute; width: 1px; height: 1px; overflow: hidden;
+      clip-path: inset(50%); white-space: nowrap;
+    }
   }
 
   .hc-readout { margin: 0; font-family: var(--mono); font-size: 11.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 3px 14px }
