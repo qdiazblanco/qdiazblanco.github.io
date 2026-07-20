@@ -5,12 +5,10 @@ date: 2026-07-20
 tags: [math, meta]
 kind: note
 growth: seedling
-draft: true
 ---
 
-<!-- STARTER DRAFT (written by Claude as a pipeline test + first-post scaffold).
-     Edit it into your own words — or delete it and write something else.
-     Publish by changing `draft: true` to `draft: false`. -->
+<!-- Written with Claude as the pipeline's first post; published as-is for
+     launch (a true seedling) — Quique will rework it in his own words. -->
 
 The animated surface on my homepage looks decorative, but it's making a
 mathematical claim every second it runs. The dashed line is a genuine level set

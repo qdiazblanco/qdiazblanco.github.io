@@ -10,7 +10,7 @@ const allTags = [...new Set(posts.flatMap((p) => p.data.tags))].sort();
 ---
 
 <Base
-  title="Blog — Enrique Díaz Blanco"
+  title="Notebook — Enrique Díaz Blanco"
   description="Notes and essays on Lean, mathematics, AI and signal processing — a digital notebook, learning in public."
 >
   <section class="block">
@@ -37,7 +37,7 @@ const allTags = [...new Set(posts.flatMap((p) => p.data.tags))].sort();
 
       <div class="posts reveal" id="postList">
         {posts.map((p) => (
-          <a class="post" href={`/blog/${p.id}/`} data-tags={p.data.tags.join(' ')}>
+          <a class="post" href={`/notebook/${p.id}/`} data-tags={p.data.tags.join(' ')}>
             <span class="date">{fmtDate(p.data.date)}</span>
             <span class="p-main">
               <h3>{p.data.title}{p.data.draft && <span class="draft-badge">draft</span>}</h3>

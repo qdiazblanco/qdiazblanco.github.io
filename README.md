@@ -48,7 +48,7 @@ Text, with $inline$ and $$display$$ math, and ```lean code blocks.
 ```
 
 Push to `main` — that's the whole pipeline. Drafts show up in `npm run dev`
-but never in the published site. The Blog section appears automatically with
+but never in the published site. The Notebook section appears automatically with
 the first published post. Math renders at build time (KaTeX, including `{CD}`
 commutative diagrams); code highlighting knows Lean.
 

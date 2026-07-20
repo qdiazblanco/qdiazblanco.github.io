@@ -6,15 +6,15 @@ interface Props {
 }
 const { path = '/' } = Astro.props;
 
-// the Blog link appears only once there is something to read (drafts count
-// in dev so writing can be previewed) — no empty sections, ever
-const hasBlog = (await getPosts()).length > 0;
+// the Notebook link appears only once there is something to read (drafts
+// count in dev so writing can be previewed) — no empty sections, ever
+const hasNotebook = (await getPosts()).length > 0;
 
 // Contact is reached via the envelope icon (kept visible at every width),
 // not a fifth text link — per Quique
 const links = [
   { href: '/', label: 'Home' },
-  ...(hasBlog ? [{ href: '/blog', label: 'Blog' }] : []),
+  ...(hasNotebook ? [{ href: '/notebook', label: 'Notebook' }] : []),
   { href: '/about', label: 'About' },
   { href: '/lean-proof', label: 'See a proof' },
 ];
