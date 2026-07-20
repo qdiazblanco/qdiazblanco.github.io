@@ -33,12 +33,13 @@ const surfaces = SURFACES.filter((s) => analyse(s).euler === s.chi);
         ))}
       </div>
       <div class="hc-sweep">
-        <label for="hcSlider">sweep the height <span id="hcLevel" class="hc-level"></span></label>
+        <label for="hcSlider">sweep the height</label>
         <input id="hcSlider" type="range" min="0" max="1000" value="0" aria-label="Sweep the height function a" />
       </div>
       <p class="hc-readout" id="hcReadout">
         <span id="hcName" class="hc-name"></span>
         <span id="hcChi" class="hc-chi"></span>
+        <span id="hcLevel" class="hc-level"></span>
         <span id="hcPassed" class="hc-passed"></span>
         <span id="hcCounts" class="hc-counts"></span>
         <span id="hcSum" class="hc-sum"></span>
@@ -57,10 +58,11 @@ const surfaces = SURFACES.filter((s) => analyse(s).euler === s.chi);
   .hero-text > *, .hero-controls { pointer-events: auto }
   .kicker { font-family: var(--mono); font-size: 13px; letter-spacing: .06em; color: var(--muted); margin: 0 0 18px }
   .kicker b { color: var(--violet) }
-  h1.title { font-size: clamp(44px, 8.5vw, 88px); font-weight: 700; max-width: 15ch }
+  /* a step smaller than the sketch's 88px — gives the surface room to breathe */
+  h1.title { font-size: clamp(40px, 7vw, 74px); font-weight: 700; max-width: 15ch }
   h1.title .g1 { background: linear-gradient(92deg, var(--hbo), var(--amber)); -webkit-background-clip: text; background-clip: text; color: transparent }
   h1.title .g2 { background: linear-gradient(92deg, var(--blue), var(--violet)); -webkit-background-clip: text; background-clip: text; color: transparent }
-  .lead { font-size: clamp(18px, 2.2vw, 22px); color: var(--muted); max-width: 46ch; margin: 22px 0 30px }
+  .lead { font-size: clamp(17px, 2vw, 20px); color: var(--muted); max-width: 46ch; margin: 22px 0 30px }
   .cta-row { display: flex; flex-wrap: wrap; gap: 14px }
 
   /* the figure is a full-bleed background; the surface renders on the right
@@ -104,6 +106,11 @@ const surfaces = SURFACES.filter((s) => analyse(s).euler === s.chi);
   .hc-sweep label { font-size: 11.5px; color: var(--muted); font-family: var(--mono); display: flex; gap: 8px; align-items: baseline }
   .hc-level { color: var(--ink) }
   #hcSlider { width: 100%; accent-color: var(--violet); height: 26px; cursor: pointer; margin: 0 }
+  /* on mouse desktops the cursor itself sweeps the level — the slider is
+     redundant there (it stays wherever touch is the pointer) */
+  @media (min-width: 821px) and (hover: hover) and (pointer: fine) {
+    .hc-sweep { display: none }
+  }
 
   .hc-readout { margin: 0; font-family: var(--mono); font-size: 11.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 3px 14px }
   .hc-name { color: var(--ink) }

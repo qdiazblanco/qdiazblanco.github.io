@@ -24,7 +24,7 @@ const AMP = 1.1; // sweep clamp: level ∈ [-AMP·HMAX, +AMP·HMAX]
 const IDLE_AMP = 1.04; // idle sine amplitude (slightly inside the clamp)
 const SLIDER_MAX = 1000;
 const IDLE_DELAY = 4000; // ms the level holds after an interaction
-const CTRL_RESERVE = 150; // px reserved under the surface for the controls (desktop)
+const CTRL_GAP = 56; // clearance under the surface incl. the critical-point glow halo
 
 export function initHero(): void {
   const canvas = document.getElementById('net') as HTMLCanvasElement | null;
@@ -77,6 +77,7 @@ export function initHero(): void {
   const countsEl = document.getElementById('hcCounts');
   const sumEl = document.getElementById('hcSum');
   const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('.hc-chip'));
+  const controlsEl = document.getElementById('heroControls');
 
   let S: Surface = surfaces[0]!;
   let A: Analysis = analyse(S);
@@ -120,9 +121,11 @@ export function initHero(): void {
       scale = Math.min(h * 0.42, w * 0.42) / A.RAD;
     } else {
       // full-bleed background: surface on the right; on wide screens it is
-      // lifted so the overlaid control strip has clear room underneath; the
-      // CSS mask keeps the wireframe out of the text column on the left
-      const free = h - (overlayMq.matches ? CTRL_RESERVE : 0);
+      // lifted so the overlaid control strip has clear room underneath —
+      // measured, not guessed, so growing the chip family can't cause
+      // overlap; the CSS mask keeps the wireframe out of the text column
+      const reserve = overlayMq.matches ? (controlsEl?.offsetHeight ?? 130) + CTRL_GAP : 0;
+      const free = h - reserve;
       cx = w * 0.76;
       cy = free / 2 + 14;
       scale = Math.min(free * 0.42, w * 0.24) / A.RAD;
@@ -390,6 +393,9 @@ export function initHero(): void {
   });
   narrowMq.addEventListener('change', start);
   overlayMq.addEventListener('change', start);
+  // the reserve under the surface measures the controls' height — remeasure
+  // once the webfonts land, since they change how many rows the chips wrap to
+  document.fonts?.ready?.then(() => start());
   addEventListener('themechange', () => {
     refreshColors();
     frame(performance.now(), true);

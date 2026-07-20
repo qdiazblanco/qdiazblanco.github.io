@@ -97,6 +97,20 @@ export const SURFACES: Surface[] = [
     vRange: [0, Math.PI], vClosed: false,
   },
   {
+    name: 'S²', desc: 'an egg', label: 'Egg', chi: 2,
+    rho: (v) => Math.sin(v) * (1 + 0.30 * Math.cos(v)),
+    zeta: (v) => 1.25 * Math.cos(v),
+    vRange: [0, Math.PI], vClosed: false,
+  },
+  {
+    // six critical points in pairs (c₀,c₁,c₂) = (2,2,2) — same sphere,
+    // a richer Morse function; Σ(-1)^index is still 2
+    name: 'S²', desc: 'a bumpy sphere', label: 'Bumpy S²', chi: 2,
+    rho: (v) => Math.sin(v) * (1 + 0.30 * Math.cos(5 * v)),
+    zeta: (v) => 1.30 * Math.cos(v),
+    vRange: [0, Math.PI], vClosed: false,
+  },
+  {
     name: 'T²', desc: 'the torus', label: 'Torus', chi: 0,
     rho: (v) => 1 + 0.42 * Math.cos(v),
     zeta: (v) => 0.42 * Math.sin(v),
@@ -112,6 +126,12 @@ export const SURFACES: Surface[] = [
     name: 'T²', desc: 'a rippled torus', label: 'Rippled torus', chi: 0,
     rho: (v) => 1 + (0.40 * (1 + 0.22 * Math.cos(3 * v))) * Math.cos(v),
     zeta: (v) => (0.40 * (1 + 0.22 * Math.cos(3 * v))) * Math.sin(v),
+    vRange: [0, TAU], vClosed: true,
+  },
+  {
+    name: 'T²', desc: 'a thin torus', label: 'Thin torus', chi: 0,
+    rho: (v) => 1 + 0.26 * Math.cos(v),
+    zeta: (v) => 0.26 * Math.sin(v),
     vRange: [0, TAU], vClosed: true,
   },
 ];
