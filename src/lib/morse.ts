@@ -160,26 +160,27 @@ export const SURFACES: Surface[] = [
     bounds: [[-1.0, 1.0], [-1.35, 1.35], [-0.45, 0.45]],
   },
   {
-    // thicker tube (ε 0.21), plumper slab — holes shrink, χ unchanged
+    // thick tube (ε 0.19, near the 0.229 well-depth limit) on a deep slab —
+    // chunky, with small unequal holes; χ unchanged
     kind: 'implicit', name: 'Σ₂', desc: 'a fat double torus', label: 'Fat Σ₂', chi: -2,
     F: (x, y, z) => {
       const U = y / 1.05, W = x / 0.72;
       const g = U * U * U * U - U * U + 0.06 * U * U * U + W * W;
-      const Z = z / 1.15;
-      return g * g + Z * Z - 0.0441;
+      const Z = z / 0.95;
+      return g * g + Z * Z - 0.0361;
     },
-    bounds: [[-1.1, 1.1], [-1.35, 1.35], [-0.6, 0.6]],
+    bounds: [[-1.1, 1.1], [-1.35, 1.35], [-0.75, 0.75]],
   },
   {
-    // thinner tube (ε 0.09), flatter slab — big airy holes
+    // very thin tube (ε 0.055), wide loops, flat slab — big airy holes
     kind: 'implicit', name: 'Σ₂', desc: 'a slim double torus', label: 'Slim Σ₂', chi: -2,
     F: (x, y, z) => {
-      const U = y / 1.15, W = x / 1.0;
+      const U = y / 1.15, W = x / 1.05;
       const g = U * U * U * U - U * U + 0.06 * U * U * U + W * W;
-      const Z = z / 2.9;
-      return g * g + Z * Z - 0.0081;
+      const Z = z / 3.2;
+      return g * g + Z * Z - 0.003025;
     },
-    bounds: [[-0.9, 0.9], [-1.4, 1.4], [-0.35, 0.35]],
+    bounds: [[-1.0, 1.0], [-1.4, 1.4], [-0.3, 0.3]],
   },
   {
     // genus 3: tube around THREE stacked loops — q(U) = U²(U²-1)² - c is a
@@ -197,16 +198,17 @@ export const SURFACES: Surface[] = [
     bounds: [[-0.9, 0.9], [-1.30, 1.30], [-0.35, 0.35]],
   },
   {
-    // same three wells, thicker tube and plumper slab
-    kind: 'implicit', name: 'Σ₃', desc: 'a fat triple torus', label: 'Fat Σ₃', chi: -4,
+    // deeper wells (c 0.14) at the same tube thickness — much bigger holes,
+    // wider loops, flatter slab
+    kind: 'implicit', name: 'Σ₃', desc: 'a slim triple torus', label: 'Slim Σ₃', chi: -4,
     F: (x, y, z) => {
-      const U = y / 0.95, W = x / 0.80;
+      const U = y / 0.95, W = x / 0.90;
       const p = U * U * (U * U - 1) * (U * U - 1);
-      const q = p - 0.12 + 0.012 * U * U * U + W * W;
-      const Z = z / 2.2;
-      return q * q + Z * Z - 0.009025;
+      const q = p - 0.14 + 0.012 * U * U * U + W * W;
+      const Z = z / 3.6;
+      return q * q + Z * Z - 0.005625;
     },
-    bounds: [[-0.9, 0.9], [-1.30, 1.30], [-0.35, 0.35]],
+    bounds: [[-0.95, 0.95], [-1.35, 1.35], [-0.3, 0.3]],
   },
 ];
 
@@ -374,6 +376,10 @@ function analyseImplicit(S: ImplicitSurface): Analysis {
           yb[0] + ((yb[1] - yb[0]) * j) / 14,
           zb[0] + ((zb[1] - zb[0]) * k) / 4,
         ]);
+  // dense seeds along the vertical axis: for tube-style surfaces every
+  // critical point lies there, and near a well edge two roots can sit close
+  // enough that the coarse grid's basins miss one (the χ test caught this)
+  for (let j = 0; j <= 120; j++) seeds.push([0, yb[0] + ((yb[1] - yb[0]) * j) / 120, 0]);
   const crit: CriticalPoint[] = [];
   for (const seed of seeds) {
     let p = [...seed];
@@ -388,7 +394,7 @@ function analyseImplicit(S: ImplicitSurface): Analysis {
       ];
       const st = solve3(J, E.map((e) => -e));
       if (!st) break;
-      const lim = 0.25; // damped step keeps Newton inside the basin
+      const lim = 0.08; // tight damping — big steps jump over close root pairs
       p = [
         p[0]! + Math.max(-lim, Math.min(lim, st[0]!)),
         p[1]! + Math.max(-lim, Math.min(lim, st[1]!)),

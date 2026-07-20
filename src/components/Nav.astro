@@ -10,12 +10,13 @@ const { path = '/' } = Astro.props;
 // in dev so writing can be previewed) — no empty sections, ever
 const hasBlog = (await getPosts()).length > 0;
 
+// Contact is reached via the envelope icon (kept visible at every width),
+// not a fifth text link — per Quique
 const links = [
   { href: '/', label: 'Home' },
   ...(hasBlog ? [{ href: '/blog', label: 'Blog' }] : []),
   { href: '/about', label: 'About' },
   { href: '/lean-proof', label: 'See a proof' },
-  { href: '/contact', label: 'Contact' },
 ];
 // active when the path matches, or (for non-home) when it's a sub-path
 const isActive = (href: string) =>
@@ -45,7 +46,7 @@ const isActive = (href: string) =>
       <a class="icon-btn" href="https://github.com/qdiazblanco" aria-label="GitHub" rel="me">
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.8 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17 4.7 18 5 18 5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.8 1.2 3.1 0 4.5-2.7 5.5-5.3 5.8.4.3.8 1 .8 2.1v3.1c0 .3.2.7.8.6A11.5 11.5 0 0 0 23.5 12C23.5 5.7 18.3.5 12 .5z" /></svg>
       </a>
-      <a class={`icon-btn${isActive('/contact') ? ' active' : ''}`} href="/contact" aria-label="Contact">
+      <a class={`icon-btn contact-btn${isActive('/contact') ? ' active' : ''}`} href="/contact" aria-label="Contact">
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="4.5" width="19" height="15" rx="2"/><path d="M3 6l9 6 9-6"/></svg>
       </a>
       <button class="menu-btn icon-btn" id="menuBtn" aria-label="Toggle menu" aria-expanded="false">☰</button>
@@ -109,8 +110,9 @@ const isActive = (href: string) =>
     nav.links.open { transform: translateY(0); visibility: visible; transition: transform .28s ease, visibility 0s }
     nav.links a { padding: 14px 0; border-bottom: 1px solid var(--border) }
     .menu-btn { display: inline-flex }
-    /* free up the crowded bar — GitHub/mail live in the menu's Contact anyway */
-    .nav-right a.icon-btn { display: none }
+    /* free up the crowded bar — but the envelope stays: it is THE route to
+       the contact page at every width */
+    .nav-right a.icon-btn:not(.contact-btn) { display: none }
     .brand { font-size: 16px }
   }
   @media (prefers-reduced-motion: reduce) { nav.links { transition: none } }
