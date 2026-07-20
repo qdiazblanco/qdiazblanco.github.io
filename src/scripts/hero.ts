@@ -109,7 +109,10 @@ export function initHero(): void {
     curIndex = i !== undefined ? i : Math.floor(Math.random() * surfaces.length);
     S = surfaces[curIndex]!;
     A = analyses[curIndex]!;
-    level = -A.HMAX * AMP; // start below everything; idle sweeps it up
+    // reduce-motion shows the COMPLETED picture (level above everything:
+    // n/n critical points, Σ = χ ✓) since no sweep will animate it there;
+    // otherwise start below everything and let the idle sweep reveal it
+    level = reduce ? A.HMAX * AMP : -A.HMAX * AMP;
     idling = false;
   }
 
@@ -119,9 +122,11 @@ export function initHero(): void {
     let segs = geoCache.get(key);
     if (!segs) {
       segs = [];
-      const res = narrow ? 56 : 84;
-      const nSlices = narrow ? 18 : 26;
-      const nSections = narrow ? 7 : 11;
+      // detail budget tuned to keep the per-frame segment count in the same
+      // ballpark as the lathe surfaces (~3-5k), not multiples of it
+      const res = narrow ? 48 : 64;
+      const nSlices = narrow ? 14 : 20;
+      const nSections = narrow ? 6 : 8;
       const [, yb] = S.bounds;
       for (let i = 1; i <= nSlices; i++) {
         const y = yb[0] + ((yb[1] - yb[0]) * i) / (nSlices + 1);
@@ -180,13 +185,23 @@ export function initHero(): void {
   const sx = (p: [number, number, number]) => cx + p[0] * scale;
   const sy = (p: [number, number, number]) => cy - p[1] * scale;
 
+  // the ramp is quantized to 64 cached strings — thousands of per-frame
+  // string allocations were real GC pressure with the implicit wireframes
+  let RAMP: string[] = [];
+  function rebuildRamp(): void {
+    RAMP = Array.from({ length: 65 }, (_, q) => {
+      const s = q / 64;
+      const k = s * (STOPS.length - 1);
+      const i = Math.min(STOPS.length - 2, Math.floor(k));
+      const f = k - i;
+      const a = STOPS[i]!, b = STOPS[i + 1]!;
+      return `rgb(${Math.round(a[0] + (b[0] - a[0]) * f)},${Math.round(a[1] + (b[1] - a[1]) * f)},${Math.round(a[2] + (b[2] - a[2]) * f)})`;
+    });
+  }
+  rebuildRamp();
   function ramp(hv: number): string {
     const s = Math.max(0, Math.min(1, (hv + A.HMAX) / (2 * A.HMAX)));
-    const k = s * (STOPS.length - 1);
-    const i = Math.min(STOPS.length - 2, Math.floor(k));
-    const f = k - i;
-    const a = STOPS[i]!, b = STOPS[i + 1]!;
-    return `rgb(${Math.round(a[0] + (b[0] - a[0]) * f)},${Math.round(a[1] + (b[1] - a[1]) * f)},${Math.round(a[2] + (b[2] - a[2]) * f)})`;
+    return RAMP[Math.round(s * 64)]!;
   }
 
   function strokeSeg(p: [number, number, number], q: [number, number, number]): void {
@@ -251,7 +266,11 @@ export function initHero(): void {
     chips.forEach((c) => c.setAttribute('aria-pressed', String(Number(c.dataset.i) === i)));
   }
   function updateSummary(): void {
-    if (summaryEl) summaryEl.textContent = `${S.name} · ${S.label}`;
+    if (summaryEl) {
+      summaryEl.textContent = `${S.name} · ${S.label}`;
+      // accessible name says what the control DOES, not just what's picked
+      summaryEl.setAttribute('aria-label', `Choose a surface (current: ${S.name} ${S.label})`);
+    }
   }
 
   // `once` = draw a single frame without scheduling the loop (init, control
@@ -394,18 +413,35 @@ export function initHero(): void {
   const randomOther = () =>
     (curIndex + 1 + Math.floor(Math.random() * (surfaces.length - 1))) % surfaces.length;
 
+  // is a canvas-local point actually ON (or near) the drawn surface? The
+  // canvas is a full-bleed background on desktop — clicks on blank page
+  // must not randomize the surface.
+  const overSurface = (px: number, py2: number) =>
+    Math.hypot(px - cx, py2 - cy) <= scale * A.RAD + 24;
+
   function wireControls(): void {
     chips.forEach((chip) => {
       chip.addEventListener('click', () => {
         const i = Number(chip.dataset.i);
         if (Number.isNaN(i) || i < 0 || i >= surfaces.length) return;
         selectSurface(i);
-        picker?.removeAttribute('open'); // close the menu on selection
+        picker?.removeAttribute('open'); // close the menu on selection…
+        (summaryEl as HTMLElement | null)?.focus(); // …without dropping keyboard focus
       });
     });
     randomBtn?.addEventListener('click', () => selectSurface(randomOther()));
-    // clicking the surface itself also jumps somewhere new
-    canvas!.addEventListener('click', () => selectSurface(randomOther()));
+    // clicking the surface ITSELF jumps somewhere new — hit-tested against
+    // the surface disc, and ignored if the "click" was really a drag
+    let downAt: [number, number] | null = null;
+    canvas!.addEventListener('pointerdown', (e) => {
+      downAt = [e.clientX, e.clientY];
+    });
+    canvas!.addEventListener('click', (e) => {
+      if (downAt && Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 6) return;
+      const rc = canvas!.getBoundingClientRect();
+      if (!overSurface(e.clientX - rc.left, e.clientY - rc.top)) return;
+      selectSurface(randomOther());
+    });
     if (slider) {
       slider.addEventListener('input', () => {
         const now = performance.now();
@@ -433,6 +469,11 @@ export function initHero(): void {
           pointer.y = e.clientY - rc.top;
           holdUntil = performance.now() + IDLE_DELAY;
         }
+        // the pointer cursor appears only where a click would actually do
+        // something (over the surface disc), not on blank background
+        const wantPointer = pointer.active && overSurface(pointer.x, pointer.y);
+        const cur = wantPointer ? 'pointer' : '';
+        if (canvas!.style.cursor !== cur) canvas!.style.cursor = cur;
       });
       document.documentElement.addEventListener('mouseleave', () => {
         pointer.active = false;
@@ -443,9 +484,9 @@ export function initHero(): void {
   // deep-linkable (and debuggable): /?surface=N picks a specific surface
   let initial: number | undefined;
   const qp = new URLSearchParams(location.search).get('surface');
-  if (qp !== null) {
-    const n = Number(qp);
-    if (Number.isInteger(n) && n >= 0 && n < surfaces.length) initial = n;
+  if (qp !== null && /^\d+$/.test(qp.trim())) {
+    const n = Number(qp.trim());
+    if (n >= 0 && n < surfaces.length) initial = n;
   }
   pick(initial);
   wireControls();
@@ -464,6 +505,7 @@ export function initHero(): void {
   document.fonts?.ready?.then(() => start());
   addEventListener('themechange', () => {
     refreshColors();
+    rebuildRamp();
     frame(performance.now(), true);
   });
   document.addEventListener('visibilitychange', () => {

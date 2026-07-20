@@ -7,6 +7,7 @@ const groups = [
   { title: 'Spheres · χ = 2', match: 'S²' },
   { title: 'Tori · χ = 0', match: 'T²' },
   { title: 'Genus 2 · χ = −2', match: 'Σ₂' },
+  { title: 'Genus 3 · χ = −4', match: 'Σ₃' },
 ].map((g) => ({
   title: g.title,
   items: surfaces.map((s, i) => ({ s, i })).filter(({ s }) => s.name === g.match),
@@ -36,7 +37,7 @@ const groups = [
     <div class="hero-controls" id="heroControls">
       <div class="hc-pick">
         <details class="hc-picker" id="hcPicker">
-          <summary class="hc-chip hc-summary" id="hcCurrent">Surface</summary>
+          <summary class="hc-chip hc-summary" id="hcCurrent" aria-label="Choose a surface">Surface</summary>
           <div class="hc-menu" role="group" aria-label="Choose a surface">
             {groups.map((g) =>
               g.items.length > 0 && (
@@ -90,7 +91,9 @@ const groups = [
   /* the figure is a full-bleed background; the surface renders on the right
      (hero.ts) and a fade mask keeps the wireframe out of the text column */
   .hero-fig { position: absolute; inset: 0; z-index: 1 }
-  #net { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: pointer }
+  /* no blanket cursor:pointer — hero.ts sets it only over the surface disc,
+     where a click actually does something */
+  #net { position: absolute; inset: 0; width: 100%; height: 100%; display: block }
   html:not(.js) .hero-fig { display: none } /* the canvas is a JS enhancement */
   @media (min-width: 821px) {
     #net {
@@ -149,8 +152,10 @@ const groups = [
   .hc-level { color: var(--ink) }
   #hcSlider { width: 100%; accent-color: var(--violet); height: 26px; cursor: pointer; margin: 0 }
   /* on mouse desktops the cursor itself sweeps the level — the slider is
-     redundant there (it stays wherever touch is the pointer) */
-  @media (min-width: 821px) and (hover: hover) and (pointer: fine) {
+     redundant there. It STAYS wherever touch is the pointer, and for
+     reduced-motion users (their cursor sweep is disabled — the slider is
+     their only way to move the level). */
+  @media (min-width: 821px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
     .hc-sweep { display: none }
   }
 
@@ -173,6 +178,10 @@ const groups = [
     .hero-controls { margin-top: 22px }
     .hc-chip { min-height: 44px; padding: 6px 12px; font-size: 12px } /* phone tap-target floor */
     #hcSlider { height: 44px }
+    /* on phones the controls sit above the figure — the menu opens DOWNWARD
+       so it can't disappear above the viewport */
+    .hc-menu { bottom: auto; top: calc(100% + 8px) }
+    #net { cursor: pointer } /* the contained figure is one big honest tap target */
     .hero-fig { position: static; margin: 14px 24px 0 }
     #net { position: relative; width: 100%; height: 260px }
   }
