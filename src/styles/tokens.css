@@ -1,22 +1,36 @@
 /* Design tokens — THE single place for colors, fonts and layout constants.
    The hero canvas reads these custom properties at runtime (see
-   src/scripts/hero.ts); never duplicate a hex value in JS. */
+   src/scripts/hero.ts) and re-reads them on theme change; never duplicate
+   a hex value in JS.
+
+   Theme model: :root is light. The dark palette is applied when the user
+   has chosen dark ([data-theme="dark"]) OR — for no-JS visitors — when the
+   OS prefers dark and no explicit choice was made. An inline script in
+   Base.astro sets data-theme before first paint, so there is no flash. */
 :root {
-  /* color */
+  color-scheme: light;
+
+  /* surfaces & ink */
   --bg: #F2F1FA;       /* pale periwinkle paper */
   --surface: #FFFFFF;
   --ink: #16162A;      /* deep indigo ink, not pure black */
   --muted: #5A5A74;
   --border: #E6E4F2;
+
+  /* playful accents — kept vivid in BOTH themes */
   --hbo: #FB5C7D;      /* coral — high end of the signal ramp */
   --blue: #3A86FF;     /* blue — low end of the signal ramp */
   --violet: #7C3AED;   /* proofs / Lean */
   --mint: #10C8A0;
   --amber: #FFB703;
-  /* hand-darkened text variants for use ON pale mint/amber tints —
-     the base colors don't meet contrast there */
+  /* darkened accent text for use ON pale tints (contrast) */
   --mint-ink: #08926f;
   --amber-ink: #a9760a;
+
+  /* the Lean code panel — a dark "editor" surface in both themes */
+  --panel: #0f0f1e;
+  --panel-2: #12122a;
+  --panel-border: #26263f;
 
   /* type */
   --disp: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
@@ -26,4 +40,41 @@
   /* layout */
   --maxw: 1100px;
   --radius: 18px;
+}
+
+/* --- dark palette ------------------------------------------------------- */
+/* one source of the dark values, reused by the explicit choice and the
+   no-JS OS-preference fallback below */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #14132A;       /* deep indigo paper */
+  --surface: #1E1D38;  /* raised card */
+  --ink: #ECEBFA;
+  --muted: #A0A0C4;
+  --border: #302E52;
+  --violet: #9F6BFF;   /* brightened so it reads on dark */
+  --mint-ink: #38DCB0;
+  --amber-ink: #FFC24D;
+  /* panel goes a touch lighter than the sketch dark so it lifts off --bg */
+  --panel: #14132A;
+  --panel-2: #1A1934;
+  --panel-border: #34335A;
+}
+
+/* no-JS visitors whose OS prefers dark and who never chose a theme */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --bg: #14132A;
+    --surface: #1E1D38;
+    --ink: #ECEBFA;
+    --muted: #A0A0C4;
+    --border: #302E52;
+    --violet: #9F6BFF;
+    --mint-ink: #38DCB0;
+    --amber-ink: #FFC24D;
+    --panel: #14132A;
+    --panel-2: #1A1934;
+    --panel-border: #34335A;
+  }
 }

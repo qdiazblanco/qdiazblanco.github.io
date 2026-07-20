@@ -66,10 +66,15 @@ html.js .reveal.in { opacity: 1; transform: none }
 .card h3 { font-size: 22px; margin-bottom: 10px }
 .card p { color: var(--muted); margin: 0; font-size: 15.5px }
 .card .stripe { position: absolute; left: 0; top: 0; bottom: 0; width: 5px }
-.t-hbo { background: color-mix(in srgb, var(--hbo) 15%, white); color: var(--hbo) }
-.t-blue { background: color-mix(in srgb, var(--blue) 14%, white); color: var(--blue) }
-.t-violet { background: color-mix(in srgb, var(--violet) 14%, white); color: var(--violet) }
-.t-mint { background: color-mix(in srgb, var(--mint) 16%, white); color: var(--mint-ink) }
-.t-amber { background: color-mix(in srgb, var(--amber) 20%, white); color: var(--amber-ink) }
+/* tints mix with --surface, not white, so they adapt to the dark theme */
+.t-hbo { background: color-mix(in srgb, var(--hbo) 15%, var(--surface)); color: var(--hbo) }
+.t-blue { background: color-mix(in srgb, var(--blue) 14%, var(--surface)); color: var(--blue) }
+.t-violet { background: color-mix(in srgb, var(--violet) 14%, var(--surface)); color: var(--violet) }
+.t-mint { background: color-mix(in srgb, var(--mint) 16%, var(--surface)); color: var(--mint-ink) }
+.t-amber { background: color-mix(in srgb, var(--amber) 20%, var(--surface)); color: var(--amber-ink) }
+
+/* card that is itself a link (the Home "explore" cards) */
+a.card { text-decoration: none; display: block }
+a.card .go { font-family: var(--mono); font-size: 13px; color: var(--violet); margin-top: 16px; display: inline-block }
 
 :focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; border-radius: 6px }
