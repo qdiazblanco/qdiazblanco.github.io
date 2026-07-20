@@ -1,0 +1,108 @@
+---
+import Base from '../../layouts/Base.astro';
+import { fmtDate, getPosts } from '../../lib/posts';
+
+const posts = await getPosts();
+// no placeholder pages: with nothing published (prod), this page bows out
+if (posts.length === 0) return Astro.redirect('/');
+
+const allTags = [...new Set(posts.flatMap((p) => p.data.tags))].sort();
+---
+
+<Base
+  title="Blog — Enrique Díaz Blanco"
+  description="Notes and essays on Lean, mathematics, AI and signal processing — a digital notebook, learning in public."
+>
+  <section class="block">
+    <div class="wrap">
+      <p class="eyebrow reveal"><span class="dot"></span>The notebook</p>
+      <h1 class="reveal page-h1">Notes &amp; essays</h1>
+      <p class="lede reveal">
+        Half lab notebook, half thinking out loud. <b class="k-note">Notes</b> are short and
+        rough; <b class="k-essay">essays</b> are worked through.
+      </p>
+
+      {allTags.length > 1 && (
+        <div class="filters reveal" id="filters" aria-label="Filter posts">
+          <button class="f-chip" data-filter="" aria-pressed="true">all</button>
+          {allTags.map((t) => (
+            <button class="f-chip" data-filter={t} aria-pressed="false">{t}</button>
+          ))}
+        </div>
+      )}
+
+      <div class="posts reveal" id="postList">
+        {posts.map((p) => (
+          <a class="post" href={`/blog/${p.id}/`} data-tags={p.data.tags.join(' ')}>
+            <span class="date">{fmtDate(p.data.date)}</span>
+            <span class="p-main">
+              <h3>{p.data.title}{p.data.draft && <span class="draft-badge">draft</span>}</h3>
+              <span class="p-desc">{p.data.description}</span>
+            </span>
+            <span class={`kindtag k-${p.data.kind}`}>{p.data.kind}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .page-h1 { font-size: clamp(34px, 5.5vw, 56px) }
+  .lede .k-note { color: var(--mint-ink) }
+  .lede .k-essay { color: var(--violet) }
+
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px }
+  .f-chip {
+    font-family: var(--mono); font-size: 12.5px; color: var(--muted); cursor: pointer;
+    background: none; border: 1px solid var(--border); border-radius: 999px; padding: 7px 14px;
+    min-height: 36px; transition: color .15s, border-color .15s, background .15s;
+  }
+  .f-chip:hover { border-color: var(--violet) }
+  .f-chip[aria-pressed="true"] { border-color: var(--violet); background: color-mix(in srgb, var(--violet) 14%, transparent); color: var(--ink) }
+  @media (max-width: 820px) { .f-chip { min-height: 44px } }
+  html:not(.js) .filters { display: none }
+
+  .posts { display: flex; flex-direction: column; margin-top: 26px; border-top: 1px solid var(--border) }
+  .post {
+    display: grid; grid-template-columns: 110px 1fr auto; gap: 20px; align-items: baseline;
+    padding: 22px 8px; border-bottom: 1px solid var(--border); text-decoration: none;
+    transition: background .18s, padding .18s;
+  }
+  .post:hover { background: var(--surface); padding-left: 16px; padding-right: 16px }
+  .post.hidden { display: none }
+  .post .date { font-family: var(--mono); font-size: 12.5px; color: var(--muted); white-space: nowrap }
+  .post h3 { font-size: 20px; display: inline }
+  .p-main { min-width: 0 }
+  .p-desc { display: block; color: var(--muted); font-size: 14.5px; margin-top: 5px }
+  .kindtag {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .05em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 999px; font-weight: 500; white-space: nowrap;
+  }
+  .k-note { background: color-mix(in srgb, var(--mint) 16%, var(--surface)); color: var(--mint-ink) }
+  .k-essay { background: color-mix(in srgb, var(--violet) 14%, var(--surface)); color: var(--violet-ink) }
+  .draft-badge {
+    font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em;
+    color: var(--amber-ink); border: 1px dashed var(--amber-ink); border-radius: 999px;
+    padding: 2px 8px; margin-left: 10px; vertical-align: middle;
+  }
+  @media (max-width: 640px) {
+    .post { grid-template-columns: 1fr; gap: 6px }
+  }
+</style>
+
+<script>
+  // tag filter — plain buttons toggling visibility; no-JS shows everything
+  const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('.f-chip'));
+  const posts = Array.from(document.querySelectorAll<HTMLElement>('#postList .post'));
+  chips.forEach((chip) =>
+    chip.addEventListener('click', () => {
+      const tag = chip.dataset.filter ?? '';
+      chips.forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+      posts.forEach((p) => {
+        const tags = (p.dataset.tags ?? '').split(' ');
+        p.classList.toggle('hidden', tag !== '' && !tags.includes(tag));
+      });
+    }),
+  );
+</script>

@@ -1,11 +1,18 @@
 ---
+import { getPosts } from '../lib/posts';
+
 interface Props {
   path?: string;
 }
 const { path = '/' } = Astro.props;
 
+// the Blog link appears only once there is something to read (drafts count
+// in dev so writing can be previewed) — no empty sections, ever
+const hasBlog = (await getPosts()).length > 0;
+
 const links = [
   { href: '/', label: 'Home' },
+  ...(hasBlog ? [{ href: '/blog', label: 'Blog' }] : []),
   { href: '/about', label: 'About' },
   { href: '/lean-proof', label: 'See a proof' },
   { href: '/contact', label: 'Contact' },
