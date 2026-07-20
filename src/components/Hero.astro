@@ -2,11 +2,20 @@
 import { SURFACES, analyse } from '../lib/morse';
 // Same filter the canvas uses, so chip indices line up with hero.ts.
 const surfaces = SURFACES.filter((s) => analyse(s).euler === s.chi);
+// group the picker by topology
+const groups = [
+  { title: 'Spheres · χ = 2', match: 'S²' },
+  { title: 'Tori · χ = 0', match: 'T²' },
+  { title: 'Genus 2 · χ = −2', match: 'Σ₂' },
+].map((g) => ({
+  title: g.title,
+  items: surfaces.map((s, i) => ({ s, i })).filter(({ s }) => s.name === g.match),
+}));
 ---
 
 <section class="hero" aria-label="Intro">
   <div class="hero-fig">
-    <canvas id="net" aria-hidden="true"></canvas>
+    <canvas id="net" aria-hidden="true" title="Click for a random surface"></canvas>
   </div>
 
   <div class="hero-body wrap">
@@ -25,12 +34,25 @@ const surfaces = SURFACES.filter((s) => analyse(s).euler === s.chi);
     </div>
 
     <div class="hero-controls" id="heroControls">
-      <div class="hc-surfaces" id="hcSurfaces" role="group" aria-label="Choose a surface">
-        {surfaces.map((s, i) => (
-          <button class="hc-chip" data-i={i} type="button" aria-pressed="false" title={`${s.name} — ${s.desc}`}>
-            <b>{s.name}</b> {s.label}
-          </button>
-        ))}
+      <div class="hc-pick">
+        <details class="hc-picker" id="hcPicker">
+          <summary class="hc-chip hc-summary" id="hcCurrent">Surface</summary>
+          <div class="hc-menu" role="group" aria-label="Choose a surface">
+            {groups.map((g) =>
+              g.items.length > 0 && (
+                <Fragment>
+                  <span class="hc-group">{g.title}</span>
+                  {g.items.map(({ s, i }) => (
+                    <button class="hc-chip" data-i={i} type="button" aria-pressed="false" title={`${s.name} — ${s.desc}`}>
+                      <b>{s.name}</b> {s.label}
+                    </button>
+                  ))}
+                </Fragment>
+              ),
+            )}
+          </div>
+        </details>
+        <button id="hcRandom" class="hc-chip hc-random" type="button">🎲 Random</button>
       </div>
       <div class="hc-sweep">
         <label for="hcSlider">sweep the height</label>
@@ -68,7 +90,7 @@ const surfaces = SURFACES.filter((s) => analyse(s).euler === s.chi);
   /* the figure is a full-bleed background; the surface renders on the right
      (hero.ts) and a fade mask keeps the wireframe out of the text column */
   .hero-fig { position: absolute; inset: 0; z-index: 1 }
-  #net { position: absolute; inset: 0; width: 100%; height: 100%; display: block }
+  #net { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: pointer }
   html:not(.js) .hero-fig { display: none } /* the canvas is a JS enhancement */
   @media (min-width: 821px) {
     #net {
@@ -91,7 +113,7 @@ const surfaces = SURFACES.filter((s) => analyse(s).euler === s.chi);
   }
   html:not(.js) .hero-controls { display: none }
 
-  .hc-surfaces { display: flex; flex-wrap: wrap; gap: 6px }
+  .hc-pick { display: flex; gap: 8px; align-items: center; flex-wrap: wrap }
   .hc-chip {
     display: inline-flex; align-items: center;
     font-family: var(--mono); font-size: 11.5px; color: var(--muted); cursor: pointer;
@@ -101,6 +123,26 @@ const surfaces = SURFACES.filter((s) => analyse(s).euler === s.chi);
   .hc-chip b { color: var(--ink); font-weight: 700; margin-right: 3px }
   .hc-chip:hover { border-color: var(--violet) }
   .hc-chip[aria-pressed="true"] { border-color: var(--violet); background: color-mix(in srgb, var(--violet) 14%, transparent); color: var(--ink) }
+
+  /* the expandable surface menu (native <details>, opens upward) */
+  .hc-picker { position: relative }
+  .hc-summary { list-style: none; color: var(--ink); user-select: none }
+  .hc-summary::-webkit-details-marker { display: none }
+  .hc-summary::after { content: "▾"; margin-left: 7px; color: var(--muted); transition: transform .18s ease }
+  .hc-picker[open] .hc-summary::after { transform: rotate(180deg) }
+  .hc-picker[open] .hc-summary { border-color: var(--violet) }
+  .hc-menu {
+    position: absolute; bottom: calc(100% + 8px); left: 0; z-index: 6;
+    width: min(320px, calc(100vw - 64px));
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 12px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: 0 18px 50px -20px color-mix(in srgb, var(--ink) 40%, transparent);
+  }
+  .hc-group {
+    grid-column: 1 / -1; font-family: var(--mono); font-size: 10.5px;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) { .hc-summary::after { transition: none } }
 
   .hc-sweep { display: flex; flex-direction: column; gap: 2px }
   .hc-sweep label { font-size: 11.5px; color: var(--muted); font-family: var(--mono); display: flex; gap: 8px; align-items: baseline }

@@ -1,11 +1,12 @@
-/* The hero canvas: Morse theory on a rotating surface of revolution.
+/* The hero canvas: Morse theory on a spinning closed surface.
    All math lives in src/lib/morse.ts; this file only draws + wires the
-   HTML controls (surface chips, sweep slider, χ readout in Hero.astro).
+   HTML controls (surface picker, sweep slider, χ readout in Hero.astro).
 
    HONESTY CONSTRAINTS (do not trade away silently — see PROJECT_BRIEF.md):
    - orthographic projection, spin about the vertical y-axis only, so
      screen-vertical is EXACTLY the height function h and the sweep line
-     is a genuine level set;
+     is a genuine level set (for implicit surfaces the horizontal slice
+     curves ARE level sets, and rotation about y preserves them);
    - colors come from the design tokens (CSS custom properties), re-read on
      theme change, never hex literals here;
    - a surface whose derived Σ(-1)^index disagrees with its declared χ is
@@ -13,12 +14,13 @@
 
    INTERACTION MODEL: while the mouse is over the hero, the level IS the
    cursor height ((cy - pointerY)/scale — the dashed line sits exactly under
-   the cursor). The slider sets the level directly. After any interaction the
+   the cursor). The slider (touch devices) sets the level directly. Clicking
+   the surface jumps to a random different one. After any interaction the
    level holds for IDLE_DELAY, then the idle sine sweep resumes FROM the held
    level (phase rebased), so nothing ever jumps. */
 
-import { AXIS_EPS, SURFACES, TAU, analyse } from '../lib/morse';
-import type { Analysis, Surface } from '../lib/morse';
+import { AXIS_EPS, SURFACES, TAU, analyse, sectionSegments, sliceSegments } from '../lib/morse';
+import type { Analysis, Seg3, Surface } from '../lib/morse';
 
 const AMP = 1.1; // sweep clamp: level ∈ [-AMP·HMAX, +AMP·HMAX]
 const IDLE_AMP = 1.04; // idle sine amplitude (slightly inside the clamp)
@@ -55,12 +57,14 @@ export function initHero(): void {
   const MONO = `ui-monospace, "JetBrains Mono", monospace`;
 
   // ---- never draw something false ----
-  const surfaces = SURFACES.filter((s) => {
-    const ok = analyse(s).euler === s.chi;
+  const kept = SURFACES.map((s) => ({ s, a: analyse(s) })).filter(({ s, a }) => {
+    const ok = a.euler === s.chi;
     if (!ok) console.error(`[hero] ${s.name} (${s.desc}) failed the Euler check — excluded`);
     return ok;
   });
-  if (surfaces.length === 0) return;
+  if (kept.length === 0) return;
+  const surfaces = kept.map((k) => k.s);
+  const analyses = kept.map((k) => k.a);
 
   // matchMedia (not clientWidth) so JS and CSS agree on the breakpoints
   const narrowMq = matchMedia('(max-width: 820px)');
@@ -76,11 +80,14 @@ export function initHero(): void {
   const passedEl = document.getElementById('hcPassed');
   const countsEl = document.getElementById('hcCounts');
   const sumEl = document.getElementById('hcSum');
-  const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('.hc-chip'));
+  const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('.hc-chip[data-i]'));
   const controlsEl = document.getElementById('heroControls');
+  const picker = document.getElementById('hcPicker') as HTMLDetailsElement | null;
+  const summaryEl = document.getElementById('hcCurrent');
+  const randomBtn = document.getElementById('hcRandom');
 
   let S: Surface = surfaces[0]!;
-  let A: Analysis = analyse(S);
+  let A: Analysis = analyses[0]!;
   let curIndex = 0;
   let NU = 60, NV = 26;
   let w = 0, h = 0, dpr = 1, raf = 0, theta = 0.6, t = 0;
@@ -93,14 +100,39 @@ export function initHero(): void {
   let inView = true, lastDraw = -1e9;
   let lastReadout = '', lastLevelStr = '';
 
+  // implicit-surface wireframes are precomputed once per (surface, detail)
+  const geoCache = new Map<string, Seg3[]>();
+
   const clampLevel = (lv: number) => Math.max(-A.HMAX * AMP, Math.min(A.HMAX * AMP, lv));
 
   function pick(i?: number): void {
     curIndex = i !== undefined ? i : Math.floor(Math.random() * surfaces.length);
     S = surfaces[curIndex]!;
-    A = analyse(S);
+    A = analyses[curIndex]!;
     level = -A.HMAX * AMP; // start below everything; idle sweeps it up
     idling = false;
+  }
+
+  function implicitGeo(): Seg3[] {
+    if (S.kind !== 'implicit') return [];
+    const key = `${curIndex}|${narrow ? 1 : 0}`;
+    let segs = geoCache.get(key);
+    if (!segs) {
+      segs = [];
+      const res = narrow ? 56 : 84;
+      const nSlices = narrow ? 18 : 26;
+      const nSections = narrow ? 7 : 11;
+      const [, yb] = S.bounds;
+      for (let i = 1; i <= nSlices; i++) {
+        const y = yb[0] + ((yb[1] - yb[0]) * i) / (nSlices + 1);
+        segs.push(...sliceSegments(S, y, res));
+      }
+      for (let i = 0; i < nSections; i++) {
+        segs.push(...sectionSegments(S, (Math.PI * i) / nSections, res));
+      }
+      geoCache.set(key, segs);
+    }
+    return segs;
   }
 
   function size(): void {
@@ -113,7 +145,7 @@ export function initHero(): void {
     ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
     narrow = narrowMq.matches;
     NU = narrow ? 44 : 60;
-    NV = S.vClosed ? (narrow ? 22 : 26) : (narrow ? 18 : 22);
+    NV = S.kind === 'lathe' && S.vClosed ? (narrow ? 22 : 26) : (narrow ? 18 : 22);
     if (narrow) {
       // contained figure — centre the surface; no text to collide with
       cx = w * 0.5;
@@ -122,7 +154,7 @@ export function initHero(): void {
     } else {
       // full-bleed background: surface on the right; on wide screens it is
       // lifted so the overlaid control strip has clear room underneath —
-      // measured, not guessed, so growing the chip family can't cause
+      // measured, not guessed, so growing the surface family can't cause
       // overlap; the CSS mask keeps the wireframe out of the text column
       const reserve = overlayMq.matches ? (controlsEl?.offsetHeight ?? 130) + CTRL_GAP : 0;
       const free = h - reserve;
@@ -132,9 +164,14 @@ export function initHero(): void {
     }
   }
 
+  // parametric point for the two lathe kinds
   const P = (u: number, v: number): [number, number, number] => {
-    const p = S.rho(v);
-    return [p * Math.cos(u), p * Math.sin(u), S.zeta(v)];
+    if (S.kind === 'latheV') {
+      const p = S.rho(v);
+      return [p * Math.cos(u), S.zeta(v), p * Math.sin(u)];
+    }
+    const p = (S as Extract<Surface, { kind: 'lathe' }>).rho(v);
+    return [p * Math.cos(u), p * Math.sin(u), (S as Extract<Surface, { kind: 'lathe' }>).zeta(v)];
   };
   const rot = (p: [number, number, number], a: number): [number, number, number] => {
     const c = Math.cos(a), s = Math.sin(a);
@@ -152,20 +189,21 @@ export function initHero(): void {
     return `rgb(${Math.round(a[0] + (b[0] - a[0]) * f)},${Math.round(a[1] + (b[1] - a[1]) * f)},${Math.round(a[2] + (b[2] - a[2]) * f)})`;
   }
 
+  function strokeSeg(p: [number, number, number], q: [number, number, number]): void {
+    const hv = (p[1] + q[1]) / 2;
+    const front = ((p[2] + q[2]) / 2 + A.RAD) / (2 * A.RAD);
+    const inSub = hv <= level;
+    ctx!.strokeStyle = ramp(hv);
+    ctx!.globalAlpha = inSub ? 0.16 + 0.52 * front : 0.04 + 0.09 * front;
+    ctx!.lineWidth = inSub ? 0.5 + 1.0 * front : 0.5;
+    ctx!.beginPath();
+    ctx!.moveTo(sx(p), sy(p));
+    ctx!.lineTo(sx(q), sy(q));
+    ctx!.stroke();
+  }
+
   function strokeCurve(pts: [number, number, number][]): void {
-    for (let i = 0; i < pts.length - 1; i++) {
-      const p = pts[i]!, q = pts[i + 1]!;
-      const hv = (p[1] + q[1]) / 2;
-      const front = ((p[2] + q[2]) / 2 + A.RAD) / (2 * A.RAD);
-      const inSub = hv <= level;
-      ctx!.strokeStyle = ramp(hv);
-      ctx!.globalAlpha = inSub ? 0.16 + 0.52 * front : 0.04 + 0.09 * front;
-      ctx!.lineWidth = inSub ? 0.5 + 1.0 * front : 0.5;
-      ctx!.beginPath();
-      ctx!.moveTo(sx(p), sy(p));
-      ctx!.lineTo(sx(q), sy(q));
-      ctx!.stroke();
-    }
+    for (let i = 0; i < pts.length - 1; i++) strokeSeg(pts[i]!, pts[i + 1]!);
   }
 
   const levelToSlider = (lv: number) =>
@@ -210,7 +248,10 @@ export function initHero(): void {
   }
 
   function setActiveChip(i: number): void {
-    chips.forEach((c, j) => c.setAttribute('aria-pressed', String(j === i)));
+    chips.forEach((c) => c.setAttribute('aria-pressed', String(Number(c.dataset.i) === i)));
+  }
+  function updateSummary(): void {
+    if (summaryEl) summaryEl.textContent = `${S.name} · ${S.label}`;
   }
 
   // `once` = draw a single frame without scheduling the loop (init, control
@@ -260,27 +301,33 @@ export function initHero(): void {
     ctx!.setLineDash([]);
     ctx!.globalAlpha = 1;
 
-    const [v0, v1] = S.vRange;
-    // ---- meridians (u fixed): the profile curve, rotated
-    for (let i = 0; i < NU; i++) {
-      const u = (i / NU) * TAU;
-      const pts: [number, number, number][] = [];
-      for (let j = 0; j <= NV; j++) pts.push(rot(P(u, v0 + ((v1 - v0) * j) / NV), theta));
-      strokeCurve(pts);
-    }
-    // ---- parallels (v fixed): circles about the axis
-    for (let j = 0; j <= NV; j++) {
-      const v = v0 + ((v1 - v0) * j) / NV;
-      if (S.rho(v) < AXIS_EPS) continue; // skip the poles
-      if (S.vClosed && j === NV) continue;
-      const pts: [number, number, number][] = [];
-      for (let i = 0; i <= NU; i++) pts.push(rot(P((i / NU) * TAU, v), theta));
-      strokeCurve(pts);
+    // ---- the wireframe, per kind
+    if (S.kind === 'implicit') {
+      // horizontal slices (true level sets) + vertical sections
+      for (const [p, q] of implicitGeo()) strokeSeg(rot(p, theta), rot(q, theta));
+    } else {
+      const [v0, v1] = S.vRange;
+      // meridians (u fixed): the profile curve, rotated about the spin axis
+      for (let i = 0; i < NU; i++) {
+        const u = (i / NU) * TAU;
+        const pts: [number, number, number][] = [];
+        for (let j = 0; j <= NV; j++) pts.push(rot(P(u, v0 + ((v1 - v0) * j) / NV), theta));
+        strokeCurve(pts);
+      }
+      // parallels (v fixed): circles about the surface's own axis
+      for (let j = 0; j <= NV; j++) {
+        const v = v0 + ((v1 - v0) * j) / NV;
+        if (S.rho(v) < AXIS_EPS) continue; // skip the poles
+        if (S.kind === 'lathe' && S.vClosed && j === NV) continue;
+        const pts: [number, number, number][] = [];
+        for (let i = 0; i <= NU; i++) pts.push(rot(P((i / NU) * TAU, v), theta));
+        strokeCurve(pts);
+      }
     }
 
     // ---- the critical points
     for (const k of A.crit) {
-      const p = rot(P(k.u, k.v), theta);
+      const p = rot(k.pos, theta);
       const X = sx(p), Y = sy(p);
       const front = (p[2] + A.RAD) / (2 * A.RAD);
       const passed = level >= k.hv;
@@ -333,21 +380,32 @@ export function initHero(): void {
   }
 
   // ---- controls ----
+  function selectSurface(i: number): void {
+    pick(i);
+    setActiveChip(curIndex);
+    updateSummary();
+    size();
+    // brief hold at the bottom, then the idle sweep reveals the new surface
+    holdUntil = performance.now() + 900;
+    // redraw now, unconditionally: the rAF loop may be paused (canvas
+    // scrolled out of view on mobile), so don't rely on it for the readout
+    frame(performance.now(), true);
+  }
+  const randomOther = () =>
+    (curIndex + 1 + Math.floor(Math.random() * (surfaces.length - 1))) % surfaces.length;
+
   function wireControls(): void {
     chips.forEach((chip) => {
       chip.addEventListener('click', () => {
         const i = Number(chip.dataset.i);
-        if (Number.isNaN(i)) return;
-        pick(i);
-        setActiveChip(i);
-        size();
-        // brief hold at the bottom, then the idle sweep reveals the new surface
-        holdUntil = performance.now() + 900;
-        // redraw now, unconditionally: the rAF loop may be paused (canvas
-        // scrolled out of view on mobile), so don't rely on it for the readout
-        frame(performance.now(), true);
+        if (Number.isNaN(i) || i < 0 || i >= surfaces.length) return;
+        selectSurface(i);
+        picker?.removeAttribute('open'); // close the menu on selection
       });
     });
+    randomBtn?.addEventListener('click', () => selectSurface(randomOther()));
+    // clicking the surface itself also jumps somewhere new
+    canvas!.addEventListener('click', () => selectSurface(randomOther()));
     if (slider) {
       slider.addEventListener('input', () => {
         const now = performance.now();
@@ -382,9 +440,17 @@ export function initHero(): void {
     }
   }
 
-  pick();
+  // deep-linkable (and debuggable): /?surface=N picks a specific surface
+  let initial: number | undefined;
+  const qp = new URLSearchParams(location.search).get('surface');
+  if (qp !== null) {
+    const n = Number(qp);
+    if (Number.isInteger(n) && n >= 0 && n < surfaces.length) initial = n;
+  }
+  pick(initial);
   wireControls();
   setActiveChip(curIndex);
+  updateSummary();
 
   let resizeTimer = 0;
   addEventListener('resize', () => {
@@ -394,7 +460,7 @@ export function initHero(): void {
   narrowMq.addEventListener('change', start);
   overlayMq.addEventListener('change', start);
   // the reserve under the surface measures the controls' height — remeasure
-  // once the webfonts land, since they change how many rows the chips wrap to
+  // once the webfonts land, since they change how the picker row wraps
   document.fonts?.ready?.then(() => start());
   addEventListener('themechange', () => {
     refreshColors();
