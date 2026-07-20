@@ -1,0 +1,37 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+  @font-face { font-family: 'Space Grotesk'; src: local('Space Grotesk'); }
+  * { margin: 0; box-sizing: border-box }
+  body { width: 1200px; height: 630px; background: #F2F1FA; overflow: hidden;
+         font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif; position: relative }
+  .glyphbar { position: absolute; top: 0; left: 0; right: 0; height: 14px;
+    background: linear-gradient(90deg, #FB5C7D, #FFB703, #10C8A0, #3A86FF, #7C3AED) }
+  .inner { padding: 110px 90px }
+  .kicker { font-family: 'JetBrains Mono', monospace; font-size: 26px; letter-spacing: .06em;
+    color: #5A5A74; margin-bottom: 28px }
+  .kicker b { color: #7C3AED; font-weight: 600 }
+  h1 { font-size: 92px; font-weight: 700; letter-spacing: -0.02em; color: #16162A; line-height: 1.02 }
+  h1 .g2 { background: linear-gradient(92deg, #3A86FF, #7C3AED); -webkit-background-clip: text; color: transparent }
+  h1 .g1 { background: linear-gradient(92deg, #C42A5A, #FFB703); -webkit-background-clip: text; color: transparent }
+  .name { position: absolute; bottom: 64px; left: 90px; font-size: 34px; font-weight: 600; color: #16162A;
+    display: flex; align-items: center; gap: 18px }
+  .dot { width: 34px; height: 34px; border-radius: 10px;
+    background: conic-gradient(from 210deg, #FB5C7D, #FFB703, #10C8A0, #3A86FF, #7C3AED, #FB5C7D) }
+  .url { position: absolute; bottom: 68px; right: 90px; font-family: 'JetBrains Mono', monospace;
+    font-size: 24px; color: #5A5A74 }
+  /* a faint honest level-set motif */
+  .rings { position: absolute; right: -140px; top: -120px; width: 560px; height: 560px; opacity: .16 }
+  .rings i { position: absolute; inset: 0; border: 3px solid #7C3AED; border-radius: 50% }
+  .rings i:nth-child(2) { inset: 60px; border-color: #3A86FF }
+  .rings i:nth-child(3) { inset: 120px; border-color: #10C8A0 }
+  .rings i:nth-child(4) { inset: 180px; border-color: #FFB703 }
+  .rings i:nth-child(5) { inset: 240px; border-color: #FB5C7D }
+</style></head><body>
+  <div class="glyphbar"></div>
+  <div class="rings"><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="inner">
+    <div class="kicker">machine-checked mathematics <b>×</b> real-world signals</div>
+    <h1><span class="g2">Theorems</span>, proved.<br><span class="g1">Signals</span>, tamed.</h1>
+  </div>
+  <div class="name"><span class="dot"></span>Enrique Díaz Blanco</div>
+  <div class="url">qdiazblanco.github.io</div>
+</body></html>
