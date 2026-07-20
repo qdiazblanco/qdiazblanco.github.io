@@ -31,8 +31,9 @@ lives on the page, $-2$. The site doesn't take my word for it: the critical
 points and their indices are *derived* — numerically, from the defining
 functions — and a test suite asserts the sum equals $\chi$ for every surface
 in the family. If I add a surface and get the topology wrong, the build fails
-and the page refuses to draw it. The homepage physically cannot show me
-something false about Morse theory. I find that funnier than I probably should.
+and the page refuses to draw it. As far as its own checks can tell, the homepage
+cannot show me something false about Morse theory. I find that funnier than I
+probably should.
 
 The same pact holds one level up. Sublevel sets only change homotopy type when
 the line crosses a critical value, and each crossing glues in a cell whose

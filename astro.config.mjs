@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
 import mdx from '@astrojs/mdx';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -15,8 +16,12 @@ export default defineConfig({
   markdown: {
     // KaTeX renders math at BUILD time — posts arrive as plain HTML+CSS,
     // readable even with JS off. Commutative squares work via {CD}.
-    remarkPlugins: [remarkMath],
-    rehypePlugins: [rehypeKatex],
+    // (markdown.remarkPlugins/rehypePlugins are deprecated in Astro 7 —
+    // the pipeline is passed as a unified() processor instead.)
+    processor: unified({
+      remarkPlugins: [remarkMath],
+      rehypePlugins: [rehypeKatex],
+    }),
     // matches the Lean panel's editor aesthetic; Shiki bundles a Lean grammar
     shikiConfig: { theme: 'material-theme-palenight' },
   },

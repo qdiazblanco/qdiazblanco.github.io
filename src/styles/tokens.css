@@ -30,6 +30,9 @@
   --violet-ink: #6A28C4;
   --mint-ink: #05715A;
   --amber-ink: #8A5F00;
+  /* text ON a violet-filled button: white on light-theme violet, dark ink on
+     the brightened dark-theme violet (white there is only 3.5:1) */
+  --on-violet: #FFFFFF;
 
   /* the Lean code panel — a dark "editor" surface in both themes */
   --panel: #0f0f1e;
@@ -63,6 +66,7 @@
   --violet-ink: #C4A6FF;
   --mint-ink: #38DCB0;
   --amber-ink: #FFC24D;
+  --on-violet: #14132A;
   /* the editor panel stays clearly darker than --bg so it reads as inset */
   --panel: #0E0D1C;
   --panel-2: #17162E;
@@ -84,6 +88,7 @@
     --violet-ink: #C4A6FF;
     --mint-ink: #38DCB0;
     --amber-ink: #FFC24D;
+    --on-violet: #14132A;
     --panel: #0E0D1C;
     --panel-2: #17162E;
     --panel-border: #34335A;

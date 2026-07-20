@@ -35,7 +35,7 @@ import Base from '../layouts/Base.astro';
           </p>
         </div>
 
-        <form id="composer" class="composer" novalidate>
+        <form id="composer" class="composer">
           <label for="cEmail">your email <span class="opt">(optional — so I can reply)</span></label>
           <input id="cEmail" name="email" type="email" autocomplete="email" placeholder="you@example.org" />
           <label for="cSubject">subject</label>
@@ -56,18 +56,23 @@ import Base from '../layouts/Base.astro';
 <style>
   .page-h1 { font-size: clamp(34px, 5.5vw, 56px) }
   .c-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 56px; align-items: start; margin-top: 40px }
+  /* min-width: 0 is load-bearing: the textarea's intrinsic width otherwise
+     floors the track and overflows 320px-class screens */
+  .c-grid > * { min-width: 0 }
   @media (max-width: 800px) { .c-grid { grid-template-columns: 1fr; gap: 36px } }
 
   .big-mail {
     font-family: var(--disp); font-weight: 700; font-size: clamp(20px, 3vw, 34px); text-decoration: none;
     overflow-wrap: anywhere; display: inline-block;
-    background: linear-gradient(92deg, var(--violet), var(--blue), var(--hbo));
+    /* gradient ends on --hbo-ink (not raw coral): the pale coral fails the
+       3:1 large-text floor on the light paper */
+    background: linear-gradient(92deg, var(--violet), var(--blue), var(--hbo-ink));
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
   .copy-btn {
     display: block; margin: 10px 0 26px; font-family: var(--mono); font-size: 12.5px; cursor: pointer;
     color: var(--muted); background: none; border: 1px solid var(--border); border-radius: 999px;
-    padding: 8px 16px; min-height: 40px; transition: color .15s, border-color .15s;
+    padding: 8px 16px; min-height: 44px; transition: color .15s, border-color .15s;
   }
   .copy-btn:hover { color: var(--ink); border-color: var(--violet) }
   html:not(.js) .copy-btn { display: none }
@@ -100,7 +105,7 @@ import Base from '../layouts/Base.astro';
     padding: 11px 14px; resize: vertical;
   }
   .composer input:focus-visible, .composer textarea:focus-visible { outline: 3px solid var(--blue); outline-offset: 1px }
-  .composer .btn { margin-top: 18px; justify-content: center; border: 1.5px solid var(--violet); background: var(--violet); color: #fff }
+  .composer .btn { margin-top: 18px; justify-content: center; border: 1.5px solid var(--violet); background: var(--violet); color: var(--on-violet) }
   .composer .btn:hover { box-shadow: 6px 8px 0 color-mix(in srgb, var(--violet) 35%, transparent) }
   .c-note { color: var(--muted); font-size: 13px; margin: 12px 0 0; line-height: 1.5 }
 </style>
@@ -114,10 +119,11 @@ import Base from '../layouts/Base.astro';
     try {
       await navigator.clipboard.writeText(addr);
       copyBtn.textContent = 'copied ✓';
+      setTimeout(() => (copyBtn.textContent = 'copy address'), 2000);
     } catch {
-      copyBtn.textContent = addr; // clipboard blocked — show it for manual copy
+      // clipboard blocked — show the address and LEAVE it up for manual copy
+      copyBtn.textContent = addr;
     }
-    setTimeout(() => (copyBtn.textContent = 'copy address'), 2000);
   });
 
   const form = document.getElementById('composer') as HTMLFormElement | null;
@@ -128,6 +134,8 @@ import Base from '../layouts/Base.astro';
     const subject = val('cSubject') || 'Hello from your website';
     let body = val('cBody');
     if (from) body += `\n\n— reply to: ${from}`;
+    // RFC 6068: mailto body line breaks must be CRLF
+    body = body.replace(/\r?\n/g, '\r\n');
     location.href = `mailto:${addr}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   });
 </script>

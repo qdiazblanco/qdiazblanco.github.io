@@ -26,7 +26,9 @@
        sketch's placeholder and must survive 320px-class screens */
     font-family: var(--disp); font-weight: 700; font-size: clamp(20px, 6.5vw, 44px); text-decoration: none;
     overflow-wrap: anywhere;
-    display: inline-block; margin: 14px 0 30px; background: linear-gradient(92deg, var(--violet), var(--blue), var(--hbo));
+    /* --hbo-ink (not raw coral) keeps the gradient's end above the 3:1
+       large-text contrast floor on light paper */
+    display: inline-block; margin: 14px 0 30px; background: linear-gradient(92deg, var(--violet), var(--blue), var(--hbo-ink));
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
   .social { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap }

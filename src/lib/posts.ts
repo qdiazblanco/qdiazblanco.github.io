@@ -17,5 +17,7 @@ export const getPublished = async () =>
     (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
   );
 
+// UTC, matching how a bare `date: 2026-07-20` in frontmatter is parsed —
+// otherwise a UTC-negative build machine renders the previous day
 export const fmtDate = (d: Date) =>
-  d.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' });
+  d.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
