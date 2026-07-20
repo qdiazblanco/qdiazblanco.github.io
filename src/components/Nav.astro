@@ -1,13 +1,47 @@
+---
+interface Props {
+  path?: string;
+}
+const { path = '/' } = Astro.props;
+
+const links = [
+  { href: '/', label: 'Home' },
+  { href: '/about', label: 'About' },
+  { href: '/lean-proof', label: 'See a proof' },
+];
+// active when the path matches, or (for non-home) when it's a sub-path
+const isActive = (href: string) =>
+  href === '/' ? path === '/' : path === href || path.startsWith(href + '/');
+
+const mail =
+  '&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#113;&#100;&#105;&#97;&#122;&#98;&#108;&#97;&#110;&#99;&#111;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;';
+---
+
 <header class="nav">
   <div class="wrap nav-inner">
-    <a class="brand" href="#top"><span class="glyph" aria-hidden="true"></span>Enrique Díaz Blanco</a>
-    <nav class="links" id="links">
-      <a href="#about">About</a>
-      <a href="#playground">Playground</a>
-      <a href="#work">Day job</a>
-      <a href="#contact">Contact</a>
+    <a class="brand" href="/"><span class="glyph" aria-hidden="true"></span>Enrique Díaz Blanco</a>
+
+    <nav class="links" id="links" aria-label="Primary">
+      {links.map((l) => (
+        <a href={l.href} class={isActive(l.href) ? 'active' : undefined} aria-current={isActive(l.href) ? 'page' : undefined}>{l.label}</a>
+      ))}
     </nav>
-    <button class="menu-btn" id="menuBtn" aria-label="Toggle menu" aria-expanded="false">☰</button>
+
+    <div class="nav-right">
+      <button id="themeBtn" class="icon-btn" type="button" aria-label="Switch colour theme">
+        <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+        </svg>
+        <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+        </svg>
+      </button>
+      <a class="icon-btn" href="https://github.com/qdiazblanco" aria-label="GitHub" rel="me">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.8 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17 4.7 18 5 18 5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.8 1.2 3.1 0 4.5-2.7 5.5-5.3 5.8.4.3.8 1 .8 2.1v3.1c0 .3.2.7.8.6A11.5 11.5 0 0 0 23.5 12C23.5 5.7 18.3.5 12 .5z" /></svg>
+      </a>
+      <a class="icon-btn" href={mail} aria-label="Email" set:html='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="4.5" width="19" height="15" rx="2"/><path d="M3 6l9 6 9-6"/></svg>' />
+      <button class="menu-btn icon-btn" id="menuBtn" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
   </div>
 </header>
 
@@ -18,10 +52,10 @@
     background: color-mix(in srgb, var(--bg) 78%, transparent);
     border-bottom: 1px solid var(--border);
   }
-  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 64px }
+  .nav-inner { display: flex; align-items: center; gap: 18px; height: 64px }
   .brand {
     font-family: var(--disp); font-weight: 700; font-size: 18px; letter-spacing: -.02em; text-decoration: none;
-    display: inline-flex; align-items: center; gap: 10px;
+    display: inline-flex; align-items: center; gap: 10px; margin-right: auto; white-space: nowrap;
   }
   .brand .glyph {
     width: 22px; height: 22px; border-radius: 7px;
@@ -32,29 +66,58 @@
     font-size: 14.5px; font-weight: 500; text-decoration: none; color: var(--muted);
     padding: 6px 2px; position: relative; transition: color .18s;
   }
-  nav.links a:hover { color: var(--ink) }
+  nav.links a:hover, nav.links a.active { color: var(--ink) }
   nav.links a::after {
     content: ""; position: absolute; left: 0; right: 100%; bottom: 0; height: 2px; border-radius: 2px;
     background: var(--violet); transition: right .22s ease;
   }
-  nav.links a:hover::after { right: 0 }
-  .menu-btn {
-    display: none; background: none; border: 1px solid var(--border); border-radius: 10px;
-    width: 44px; height: 44px; cursor: pointer; color: var(--ink); font-size: 18px;
+  nav.links a:hover::after, nav.links a.active::after { right: 0 }
+
+  .nav-right { display: flex; align-items: center; gap: 4px }
+  .icon-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; border-radius: 12px; border: 0; background: none;
+    color: var(--muted); cursor: pointer; text-decoration: none; transition: color .18s, background .18s;
   }
+  .icon-btn:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 8%, transparent) }
+  .icon-btn svg { width: 20px; height: 20px }
+  /* the theme button shows the icon for the theme you'd switch TO */
+  .i-sun { display: none }
+  :root[data-theme="dark"] .i-moon { display: none }
+  :root[data-theme="dark"] .i-sun { display: block }
+  .menu-btn { display: none; font-size: 18px; color: var(--ink) }
+
   @media (max-width: 720px) {
     nav.links {
       position: fixed; inset: 64px 0 auto 0; flex-direction: column; gap: 0; background: var(--surface);
       border-bottom: 1px solid var(--border); padding: 8px 24px 16px; transform: translateY(-140%); transition: transform .28s ease;
     }
     nav.links.open { transform: translateY(0) }
-    nav.links a { padding: 12px 0; border-bottom: 1px solid var(--border) }
-    .menu-btn { display: block }
+    nav.links a { padding: 14px 0; border-bottom: 1px solid var(--border) }
+    .menu-btn { display: inline-flex }
+    /* free up the crowded bar — GitHub/mail live in the menu's Contact anyway */
+    .nav-right a.icon-btn { display: none }
+    .brand { font-size: 16px }
   }
   @media (prefers-reduced-motion: reduce) { nav.links { transition: none } }
 </style>
 
 <script>
+  // theme toggle — persists the choice and tells the hero canvas to re-read
+  const themeBtn = document.getElementById('themeBtn');
+  themeBtn?.addEventListener('click', () => {
+    const el = document.documentElement;
+    const next = el.dataset.theme === 'dark' ? 'light' : 'dark';
+    el.dataset.theme = next;
+    try {
+      localStorage.setItem('theme', next);
+    } catch (e) {
+      /* private mode — the in-memory switch still works */
+    }
+    window.dispatchEvent(new CustomEvent('themechange'));
+  });
+
+  // mobile menu
   const btn = document.getElementById('menuBtn');
   const links = document.getElementById('links');
   if (btn && links) {

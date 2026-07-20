@@ -35,14 +35,25 @@ const {
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
     <script is:inline>
-      // is:inline is required: a bare script becomes a deferred module and
-      // would stamp too late — this must run during parsing, before first
-      // paint, so CSS hides .reveal only when JS will reveal it again
-      document.documentElement.classList.add('js');
+      // is:inline + in <head> = runs during parsing, before first paint:
+      // no theme flash, and CSS hides .reveal only when JS can reveal it.
+      (function () {
+        var el = document.documentElement;
+        try {
+          var stored = localStorage.getItem('theme'); // 'light' | 'dark' | null
+          var dark = stored
+            ? stored === 'dark'
+            : matchMedia('(prefers-color-scheme: dark)').matches;
+          el.dataset.theme = dark ? 'dark' : 'light';
+        } catch (e) {
+          el.dataset.theme = 'light';
+        }
+        el.classList.add('js');
+      })();
     </script>
   </head>
   <body>
-    <Nav />
+    <Nav path={Astro.url.pathname} />
     <main id="top">
       <slot />
     </main>

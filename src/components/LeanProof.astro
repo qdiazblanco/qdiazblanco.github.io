@@ -1,0 +1,129 @@
+---
+import { CODE, NAME, PROOF } from '../data/proofs/zero-add';
+
+// Server-render the code and the initial goal state so the proof is
+// fully readable even if JavaScript never runs.
+const codeHtml = CODE.map(
+  (line, i) => `<span class="ln${i === 0 ? ' active' : ''}">${line || ' '}</span>`,
+).join('');
+const initial = PROOF[0]!;
+---
+
+<section class="block lean-block" id="lean-proof">
+  <div class="wrap">
+    <p class="eyebrow reveal"><span class="dot"></span>Machine-checked mathematics</p>
+    <h1 class="reveal page-h1">See through a Lean proof</h1>
+    <!-- "Hit <strong>" stays on one line: Astro collapses whitespace before inline elements at line breaks -->
+    <p class="lede reveal">
+      In Lean 4, a proof is a program the compiler checks line by line. Below is a real one —
+      verified against the compiler before it shipped here. Hit <strong>Step</strong> and watch the
+      goal state on the right update exactly as it would in the editor: hypotheses accumulate,
+      cases split, goals close.
+    </p>
+
+    <div class="lean reveal" role="group" aria-label="Interactive Lean proof stepper">
+      <div class="lean-code">
+        <div class="lean-bar">
+          <span class="name">{NAME}</span>
+          <span class="dots"
+            ><i style="background:var(--hbo)"></i><i style="background:var(--amber)"></i><i
+              style="background:var(--mint)"></i></span
+          >
+        </div>
+        <pre class="code" id="code" set:html={codeHtml} />
+      </div>
+      <div class="lean-goal">
+        <div class="goal-head">
+          Lean infoview <span class="pill" id="goalCount">
+            {initial.goals.length === 1 ? '1 goal' : `${initial.goals.length} goals`}
+          </span>
+        </div>
+        <div class="goals" id="goals" aria-live="polite">
+          {initial.goals.map((g) => (
+            <div class="goal">
+              {g.case && <span class="case">case {g.case}</span>}
+              {g.hyps.map((x) => <div class="hyp">{x}</div>)}
+              <div><span class="turn">⊢</span> <span class="tgt">{g.target}</span></div>
+            </div>
+          ))}
+        </div>
+        <div class="lean-ctrl">
+          <button id="stepBtn">Step ▸</button>
+          <button id="resetBtn" class="sec">Reset</button>
+          <span class="prog" id="prog">0 / {CODE.length}</span>
+        </div>
+      </div>
+    </div>
+    <p class="swap-note reveal">
+      This one proves <code>0 + n = n</code> by induction. Each proof is one typed file — see <code>src/data/proofs/</code> —
+      so swapping in another (a Mathlib manifold lemma, ideally) is a small change, and every proof
+      is verified with a real Lean compiler before it ships.
+    </p>
+  </div>
+</section>
+
+<!-- These styles are global on purpose: the stepper re-renders its goal
+     panel with innerHTML, and Astro's scoped-style attributes would not
+     survive that re-render. -->
+<style is:global>
+  .lean-block { background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--violet) 6%, transparent)) }
+  .page-h1 { font-size: clamp(34px, 5.5vw, 56px) }
+  .lean {
+    display: grid; grid-template-columns: 1.15fr .85fr; gap: 0; margin-top: 40px;
+    border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--panel);
+    box-shadow: 0 26px 60px -30px color-mix(in srgb, var(--violet) 55%, transparent);
+  }
+  /* min-width: 0 is load-bearing: grid items default to min-width auto, which
+     floors the track at the longest code line and defeats the pre's own
+     overflow-x scrolling on phones */
+  .lean-code, .lean-goal { padding: 24px 26px; min-width: 0 }
+  .lean-code { border-right: 1px solid var(--panel-border) }
+  .lean-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px }
+  .lean-bar .name { font-family: var(--mono); font-size: 12px; color: #8b8bb0; letter-spacing: .05em }
+  .lean-bar .dots { display: flex; gap: 6px }
+  .lean-bar .dots i { width: 10px; height: 10px; border-radius: 50%; display: block }
+  pre.code { margin: 0; font-family: var(--mono); font-size: 14px; line-height: 2; color: #e6e6ff; white-space: pre; overflow-x: auto }
+  pre.code .ln { display: block; padding: 0 8px; border-radius: 6px; transition: background .2s }
+  pre.code .ln.active { background: color-mix(in srgb, var(--violet) 30%, transparent) }
+  pre.code .ln.done { opacity: .55 }
+  .kw { color: #c792ea } .fn { color: #82aaff } .ty { color: #ffcb6b } .op { color: #89ddff } .num { color: #f78c6c } .cm { color: #5a5a80; font-style: italic }
+  .lean-goal { background: var(--panel-2); color: #dcdcf5 }
+  .goal-head {
+    font-family: var(--mono); font-size: 12px; color: #8b8bb0; letter-spacing: .05em; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .goal-head .pill { background: color-mix(in srgb, var(--mint) 22%, transparent); color: var(--mint); padding: 2px 10px; border-radius: 999px; font-weight: 500 }
+  .goals { display: flex; flex-direction: column; gap: 16px; min-height: 150px }
+  .goal { font-family: var(--mono); font-size: 13.5px; line-height: 1.7; border-left: 2px solid var(--violet); padding-left: 14px; animation: pop .35s ease }
+  @keyframes pop { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
+  @media (prefers-reduced-motion: reduce) { .goal { animation: none } }
+  .goal .hyp { color: #a9a9d6 }
+  .goal .turn { color: var(--mint); font-weight: 700 }
+  .goal .tgt { color: #fff }
+  .goal .case { color: var(--amber); font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; display: block; margin-bottom: 4px }
+  .solved { font-family: var(--disp); font-size: 20px; color: var(--mint); display: flex; align-items: center; gap: 10px }
+  .lean-ctrl { display: flex; align-items: center; gap: 12px; margin-top: 22px; flex-wrap: wrap }
+  .lean-ctrl button {
+    font-family: var(--disp); font-weight: 600; font-size: 14px; cursor: pointer; border-radius: 999px;
+    padding: 10px 20px; border: 1.5px solid var(--violet); background: var(--violet); color: white; transition: transform .15s, opacity .2s;
+    min-height: 44px; /* phone tap-target floor */
+  }
+  .lean-ctrl button.sec { background: transparent; color: #c9c9f0 }
+  .lean-ctrl button:hover { transform: translateY(-2px) }
+  .lean-ctrl button:disabled { opacity: .4; cursor: not-allowed; transform: none }
+  .lean-ctrl .prog { font-family: var(--mono); font-size: 12px; color: #8b8bb0; margin-left: auto }
+  .swap-note { margin-top: 16px; font-size: 14px; color: var(--muted) }
+  .swap-note code {
+    font-family: var(--mono); font-size: 12.5px; background: color-mix(in srgb, var(--violet) 16%, transparent);
+    padding: 2px 7px; border-radius: 6px; color: var(--violet);
+  }
+  @media (max-width: 760px) {
+    .lean { grid-template-columns: 1fr }
+    .lean-code { border-right: 0; border-bottom: 1px solid var(--panel-border) }
+  }
+</style>
+
+<script>
+  import { initStepper } from '../scripts/stepper';
+  initStepper();
+</script>
