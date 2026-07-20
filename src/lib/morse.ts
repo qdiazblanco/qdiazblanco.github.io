@@ -46,6 +46,8 @@ export const AXIS_EPS = 0.05;
 export interface Surface {
   name: string;
   desc: string;
+  /** short label for the surface-picker chips */
+  label: string;
   chi: number;
   rho: (v: number) => number;
   zeta: (v: number) => number;
@@ -77,37 +79,37 @@ export interface Analysis {
    every time. */
 export const SURFACES: Surface[] = [
   {
-    name: 'S²', desc: 'the sphere', chi: 2,
+    name: 'S²', desc: 'the sphere', label: 'Sphere', chi: 2,
     rho: (v) => Math.sin(v),
     zeta: (v) => Math.cos(v),
     vRange: [0, Math.PI], vClosed: false,
   },
   {
-    name: 'S²', desc: 'an ellipsoid', chi: 2,
+    name: 'S²', desc: 'an ellipsoid', label: 'Ellipsoid', chi: 2,
     rho: (v) => 0.70 * Math.sin(v),
     zeta: (v) => 1.45 * Math.cos(v),
     vRange: [0, Math.PI], vClosed: false,
   },
   {
-    name: 'S²', desc: 'a sphere with a waist', chi: 2,
+    name: 'S²', desc: 'a sphere with a waist', label: 'Waisted S²', chi: 2,
     rho: (v) => Math.sin(v) * (1 + 0.90 * Math.cos(v) * Math.cos(v)),
     zeta: (v) => 1.35 * Math.cos(v),
     vRange: [0, Math.PI], vClosed: false,
   },
   {
-    name: 'T²', desc: 'the torus', chi: 0,
+    name: 'T²', desc: 'the torus', label: 'Torus', chi: 0,
     rho: (v) => 1 + 0.42 * Math.cos(v),
     zeta: (v) => 0.42 * Math.sin(v),
     vRange: [0, TAU], vClosed: true,
   },
   {
-    name: 'T²', desc: 'a fat torus', chi: 0,
+    name: 'T²', desc: 'a fat torus', label: 'Fat torus', chi: 0,
     rho: (v) => 1 + 0.62 * Math.cos(v),
     zeta: (v) => 0.62 * Math.sin(v),
     vRange: [0, TAU], vClosed: true,
   },
   {
-    name: 'T²', desc: 'a rippled torus', chi: 0,
+    name: 'T²', desc: 'a rippled torus', label: 'Rippled torus', chi: 0,
     rho: (v) => 1 + (0.40 * (1 + 0.22 * Math.cos(3 * v))) * Math.cos(v),
     zeta: (v) => (0.40 * (1 + 0.22 * Math.cos(3 * v))) * Math.sin(v),
     vRange: [0, TAU], vClosed: true,
