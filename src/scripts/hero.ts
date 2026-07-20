@@ -77,7 +77,7 @@ export function initHero(): void {
   let sliderActive = false, lastSlider = -1e9;
   let scale = 120, cx = 0, cy = 0, narrow = false;
   let inView = true, lastDraw = -1e9;
-  let lastReadout = '';
+  let lastReadout = '', lastLevelStr = '';
 
   function pick(i?: number): void {
     curIndex = i !== undefined ? i : Math.floor(Math.random() * surfaces.length);
@@ -151,6 +151,16 @@ export function initHero(): void {
   const sliderToLevel = (v: number) => ((v / SLIDER_MAX) * 2 - 1) * AMP * A.HMAX;
 
   function updateReadout(): void {
+    // the height label tracks every frame; it lives OUTSIDE any live region,
+    // and the slider exposes the real height (not the opaque 0–1000) to AT
+    const lv = level.toFixed(2);
+    if (lv !== lastLevelStr) {
+      lastLevelStr = lv;
+      if (levelEl) levelEl.textContent = `a = ${lv}`;
+      if (slider) slider.setAttribute('aria-valuetext', `height a = ${lv}`);
+    }
+    // the counts/χ only change when the sweep crosses a critical point —
+    // gate the readout DOM writes on that, so it isn't rewritten every frame
     const b = [0, 0, 0];
     let n = 0;
     for (const k of A.crit)
@@ -161,10 +171,9 @@ export function initHero(): void {
     const sum = b[0]! - b[1]! + b[2]!;
     const total = A.crit.length;
     const done = n === total && sum === S.chi;
-    const sig = `${curIndex}|${n}|${sum}|${level.toFixed(2)}`;
+    const sig = `${curIndex}|${n}|${sum}`;
     if (sig === lastReadout) return;
     lastReadout = sig;
-    if (levelEl) levelEl.textContent = `a = ${level.toFixed(2)}`;
     if (nameEl) nameEl.textContent = `${S.name} · ${S.desc}`;
     if (chiEl) chiEl.textContent = `χ = ${S.chi}`;
     if (passedEl) passedEl.textContent = `${n}/${total} critical points`;
@@ -308,14 +317,17 @@ export function initHero(): void {
         pick(i);
         setActiveChip(i);
         size();
-        if (reduce) frame();
+        // redraw now, unconditionally: the rAF loop may be paused (canvas
+        // scrolled out of view on mobile), so don't rely on it for the readout
+        frame(performance.now(), true);
       });
     });
     if (slider) {
       slider.addEventListener('input', () => {
         sliderActive = true;
         lastSlider = performance.now();
-        if (reduce) frame();
+        // redraw now regardless of whether the loop is running (see chips)
+        frame(performance.now(), true);
       });
     }
     // hover-to-sweep is a MOUSE-only delight — touch uses the slider, so it

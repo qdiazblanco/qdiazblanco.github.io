@@ -90,9 +90,13 @@ const mail =
   @media (max-width: 720px) {
     nav.links {
       position: fixed; inset: 64px 0 auto 0; flex-direction: column; gap: 0; background: var(--surface);
-      border-bottom: 1px solid var(--border); padding: 8px 24px 16px; transform: translateY(-140%); transition: transform .28s ease;
+      border-bottom: 1px solid var(--border); padding: 8px 24px 16px; transform: translateY(-140%);
+      /* visibility:hidden takes the links out of the tab order while closed
+         (transform alone leaves them as off-screen phantom tab stops); the
+         delayed visibility transition lets them slide out before hiding */
+      visibility: hidden; transition: transform .28s ease, visibility 0s linear .28s;
     }
-    nav.links.open { transform: translateY(0) }
+    nav.links.open { transform: translateY(0); visibility: visible; transition: transform .28s ease, visibility 0s }
     nav.links a { padding: 14px 0; border-bottom: 1px solid var(--border) }
     .menu-btn { display: inline-flex }
     /* free up the crowded bar — GitHub/mail live in the menu's Contact anyway */
