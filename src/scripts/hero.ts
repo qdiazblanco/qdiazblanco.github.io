@@ -9,14 +9,22 @@
    - colors come from the design tokens (CSS custom properties), re-read on
      theme change, never hex literals here;
    - a surface whose derived Σ(-1)^index disagrees with its declared χ is
-     never drawn. */
+     never drawn.
+
+   INTERACTION MODEL: while the mouse is over the hero, the level IS the
+   cursor height ((cy - pointerY)/scale — the dashed line sits exactly under
+   the cursor). The slider sets the level directly. After any interaction the
+   level holds for IDLE_DELAY, then the idle sine sweep resumes FROM the held
+   level (phase rebased), so nothing ever jumps. */
 
 import { AXIS_EPS, SURFACES, TAU, analyse } from '../lib/morse';
 import type { Analysis, Surface } from '../lib/morse';
 
-const AMP = 1.1; // sweep spans [-AMP·HMAX, +AMP·HMAX]
+const AMP = 1.1; // sweep clamp: level ∈ [-AMP·HMAX, +AMP·HMAX]
+const IDLE_AMP = 1.04; // idle sine amplitude (slightly inside the clamp)
 const SLIDER_MAX = 1000;
-const SLIDER_HOLD = 2500; // ms the slider keeps control before idle resumes
+const IDLE_DELAY = 4000; // ms the level holds after an interaction
+const CTRL_RESERVE = 150; // px reserved under the surface for the controls (desktop)
 
 export function initHero(): void {
   const canvas = document.getElementById('net') as HTMLCanvasElement | null;
@@ -54,8 +62,11 @@ export function initHero(): void {
   });
   if (surfaces.length === 0) return;
 
-  // matchMedia (not clientWidth) so JS and CSS agree on the breakpoint
+  // matchMedia (not clientWidth) so JS and CSS agree on the breakpoints
   const narrowMq = matchMedia('(max-width: 820px)');
+  // wide screens overlay the controls bottom-right (see Hero.astro) — only
+  // then does the surface need vertical room reserved beneath it
+  const overlayMq = matchMedia('(min-width: 1121px)');
 
   // ---- control elements (all optional — the hero may render without them) ----
   const slider = document.getElementById('hcSlider') as HTMLInputElement | null;
@@ -72,18 +83,23 @@ export function initHero(): void {
   let curIndex = 0;
   let NU = 60, NV = 26;
   let w = 0, h = 0, dpr = 1, raf = 0, theta = 0.6, t = 0;
-  let level = 0, targetLevel = 0, spin = 0.0035;
+  let level = 0, spin = 0.0035;
   const pointer = { active: false, x: 0, y: 0 };
-  let sliderActive = false, lastSlider = -1e9;
+  let holdUntil = 0; // performance.now() until which the level stays put
+  let sliderSyncBlockUntil = 0; // don't overwrite the thumb right after a drag
+  let idling = false; // are we inside the idle sine sweep (phase valid)?
   let scale = 120, cx = 0, cy = 0, narrow = false;
   let inView = true, lastDraw = -1e9;
   let lastReadout = '', lastLevelStr = '';
+
+  const clampLevel = (lv: number) => Math.max(-A.HMAX * AMP, Math.min(A.HMAX * AMP, lv));
 
   function pick(i?: number): void {
     curIndex = i !== undefined ? i : Math.floor(Math.random() * surfaces.length);
     S = surfaces[curIndex]!;
     A = analyse(S);
-    level = targetLevel = -A.HMAX * AMP; // start below everything
+    level = -A.HMAX * AMP; // start below everything; idle sweeps it up
+    idling = false;
   }
 
   function size(): void {
@@ -103,10 +119,13 @@ export function initHero(): void {
       cy = h * 0.5;
       scale = Math.min(h * 0.42, w * 0.42) / A.RAD;
     } else {
-      // full-bleed background — surface on the right, clear of text/controls
-      cx = w * 0.73;
-      cy = h * 0.5;
-      scale = Math.min(h * 0.44, w * 0.26) / A.RAD;
+      // full-bleed background: surface on the right; on wide screens it is
+      // lifted so the overlaid control strip has clear room underneath; the
+      // CSS mask keeps the wireframe out of the text column on the left
+      const free = h - (overlayMq.matches ? CTRL_RESERVE : 0);
+      cx = w * 0.76;
+      cy = free / 2 + 14;
+      scale = Math.min(free * 0.42, w * 0.24) / A.RAD;
     }
   }
 
@@ -150,14 +169,17 @@ export function initHero(): void {
     Math.round(((lv / (AMP * A.HMAX) + 1) / 2) * SLIDER_MAX);
   const sliderToLevel = (v: number) => ((v / SLIDER_MAX) * 2 - 1) * AMP * A.HMAX;
 
-  function updateReadout(): void {
+  function updateReadout(now: number): void {
     // the height label tracks every frame; it lives OUTSIDE any live region,
     // and the slider exposes the real height (not the opaque 0–1000) to AT
     const lv = level.toFixed(2);
     if (lv !== lastLevelStr) {
       lastLevelStr = lv;
       if (levelEl) levelEl.textContent = `a = ${lv}`;
-      if (slider) slider.setAttribute('aria-valuetext', `height a = ${lv}`);
+      if (slider) {
+        slider.setAttribute('aria-valuetext', `height a = ${lv}`);
+        if (now > sliderSyncBlockUntil) slider.value = String(levelToSlider(level));
+      }
     }
     // the counts/χ only change when the sweep crosses a critical point —
     // gate the readout DOM writes on that, so it isn't rewritten every frame
@@ -188,38 +210,37 @@ export function initHero(): void {
     chips.forEach((c, j) => c.setAttribute('aria-pressed', String(j === i)));
   }
 
-  // `once` = draw a single frame without scheduling the loop (used on init
-  // so the surface + readout are populated even while the canvas is still
-  // scrolled out of view — on mobile it sits below the controls)
+  // `once` = draw a single frame without scheduling the loop (init, control
+  // events, reduce mode) — must never be swallowed by the fps cap
   function frame(now = 0, once = false): void {
     if (!reduce && !once) raf = requestAnimationFrame(frame);
-    // cap phones at ~30fps — but never skip in reduce mode or a one-shot draw
-    if (!reduce && narrow && now - lastDraw < 30 && !once) return;
+    if (!reduce && narrow && now - lastDraw < 30 && !once) return; // ~30fps phone cap
     const clock = narrow ? 2 : 1; // advance clocks 2× at half the frame rate
     t += 0.016 * clock;
     lastDraw = now;
     if (!reduce) theta += spin * clock;
 
-    if (sliderActive && now - lastSlider > SLIDER_HOLD) sliderActive = false;
-
+    const idleAmp = A.HMAX * IDLE_AMP;
     if (!reduce && pointer.active) {
-      targetLevel = (0.5 - pointer.y / h) * 2 * A.HMAX * AMP;
+      // the dashed line sits EXACTLY under the cursor
+      level = clampLevel((cy - pointer.y) / scale);
       spin = 0.0035 + (pointer.x / w - 0.5) * 0.011;
-    } else if (sliderActive && slider) {
-      targetLevel = sliderToLevel(+slider.value);
+      idling = false;
+    } else if (reduce || now < holdUntil) {
+      // hold: keep the level where the user (or the last frame) left it
       spin = 0.0035;
-    } else if (!reduce) {
-      targetLevel = Math.sin(t * 0.3) * A.HMAX * (AMP * 0.94);
+      idling = false;
+    } else {
+      if (!idling) {
+        // resume the sine FROM the current level: rebase its phase so the
+        // sweep continues without a jump
+        const r = Math.max(-1, Math.min(1, level / idleAmp));
+        t = Math.asin(r) / 0.3;
+        idling = true;
+      }
+      level += (Math.sin(t * 0.3) * idleAmp - level) * 0.07;
       spin = 0.0035;
-    } // else (reduce, no active control): hold targetLevel where it is
-    targetLevel = Math.max(-A.HMAX * AMP, Math.min(A.HMAX * AMP, targetLevel));
-
-    // immediate response while actively controlled (kills the cursor lag);
-    // gentle lerp only for the hands-off idle sweep
-    const immediate = reduce || (!reduce && pointer.active) || sliderActive;
-    level += (targetLevel - level) * (immediate ? 1 : 0.07);
-    // keep the slider thumb in sync when the user isn't dragging it
-    if (slider && !sliderActive) slider.value = String(levelToSlider(level));
+    }
 
     ctx!.clearRect(0, 0, w, h);
 
@@ -289,7 +310,7 @@ export function initHero(): void {
       ctx!.globalAlpha = 1;
     }
 
-    updateReadout();
+    updateReadout(now);
   }
 
   // ---- run state: draw only while visible (tab AND viewport) ----
@@ -298,7 +319,7 @@ export function initHero(): void {
     raf = 0;
   }
   function run(): void {
-    if (reduce) { frame(); return; } // single honest frame
+    if (reduce) { frame(performance.now(), true); return; } // single honest frame
     if (!raf && inView && !document.hidden) raf = requestAnimationFrame(frame);
   }
   function start(): void {
@@ -317,6 +338,8 @@ export function initHero(): void {
         pick(i);
         setActiveChip(i);
         size();
+        // brief hold at the bottom, then the idle sweep reveals the new surface
+        holdUntil = performance.now() + 900;
         // redraw now, unconditionally: the rAF loop may be paused (canvas
         // scrolled out of view on mobile), so don't rely on it for the readout
         frame(performance.now(), true);
@@ -324,23 +347,33 @@ export function initHero(): void {
     });
     if (slider) {
       slider.addEventListener('input', () => {
-        sliderActive = true;
-        lastSlider = performance.now();
-        // redraw now regardless of whether the loop is running (see chips)
-        frame(performance.now(), true);
+        const now = performance.now();
+        level = clampLevel(sliderToLevel(+slider.value));
+        idling = false;
+        holdUntil = now + IDLE_DELAY;
+        sliderSyncBlockUntil = now + 600; // don't fight the user's thumb
+        frame(now, true); // redraw even if the loop is paused
       });
     }
     // hover-to-sweep is a MOUSE-only delight — touch uses the slider, so it
-    // never fights vertical scrolling; and it's disabled under reduced motion
+    // never fights vertical scrolling; and it's disabled under reduced motion.
+    // Listen on window so tracking never drops while crossing the hero text;
+    // interactive elements (controls, links) pause the sweep instead.
     if (!reduce) {
-      canvas!.addEventListener('pointermove', (e) => {
+      addEventListener('pointermove', (e) => {
         if (e.pointerType !== 'mouse') return;
         const rc = canvas!.getBoundingClientRect();
-        pointer.x = e.clientX - rc.left;
-        pointer.y = e.clientY - rc.top;
-        pointer.active = pointer.y > 0 && pointer.y < h;
+        const inside =
+          e.clientX >= rc.left && e.clientX <= rc.right && e.clientY >= rc.top && e.clientY <= rc.bottom;
+        const onControl = !!(e.target as Element | null)?.closest?.('#heroControls, a, button');
+        pointer.active = inside && !onControl;
+        if (pointer.active) {
+          pointer.x = e.clientX - rc.left;
+          pointer.y = e.clientY - rc.top;
+          holdUntil = performance.now() + IDLE_DELAY;
+        }
       });
-      canvas!.addEventListener('pointerleave', () => {
+      document.documentElement.addEventListener('mouseleave', () => {
         pointer.active = false;
       });
     }
@@ -356,9 +389,10 @@ export function initHero(): void {
     resizeTimer = window.setTimeout(start, 180);
   });
   narrowMq.addEventListener('change', start);
+  overlayMq.addEventListener('change', start);
   addEventListener('themechange', () => {
     refreshColors();
-    if (reduce) frame();
+    frame(performance.now(), true);
   });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) stop();
