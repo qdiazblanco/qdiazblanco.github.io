@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config';
 import { unified } from '@astrojs/markdown-remark';
 import mdx from '@astrojs/mdx';
+import sitemap from '@astrojs/sitemap';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 
@@ -12,7 +13,7 @@ export default defineConfig({
   site: 'https://qdiazblanco.github.io',
   // Posts are plain .md by default; MDX is available for the day a post
   // needs an interactive island inside it.
-  integrations: [mdx()],
+  integrations: [mdx(), sitemap()],
   markdown: {
     // KaTeX renders math at BUILD time — posts arrive as plain HTML+CSS,
     // readable even with JS off. Commutative squares work via {CD}.

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://qdiazblanco.github.io/sitemap-index.xml

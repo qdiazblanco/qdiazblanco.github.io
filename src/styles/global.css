@@ -79,3 +79,13 @@ a.card { text-decoration: none; display: block }
 a.card .go { font-family: var(--mono); font-size: 13px; color: var(--violet); margin-top: 16px; display: inline-block }
 
 :focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; border-radius: 6px }
+
+/* keyboard skip link — visually hidden until focused */
+.skip-link {
+  position: absolute; left: 12px; top: -60px; z-index: 100;
+  font-family: var(--mono); font-size: 13px; text-decoration: none;
+  background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 0 0 10px 10px;
+  transition: top .15s ease;
+}
+.skip-link:focus { top: 0 }
+@media (prefers-reduced-motion: reduce) { .skip-link { transition: none } }

@@ -27,7 +27,7 @@
           <div class="row"><dt>Focus</dt><dd>Lean 4 · Mathlib · manifolds</dd></div>
           <div class="row">
             <dt>Thesis</dt>
-            <dd><a href="https://github.com/qdiazblanco/introduction-to-morse-theory">Morse theory (in Spanish)</a></dd>
+            <dd><a href="/morse-theory-thesis.pdf">Morse theory (PDF, in Spanish)</a></dd>
           </div>
           <div class="row"><dt>Day job</dt><dd>fNIRS · EEG · Python</dd></div>
           <div class="row">
@@ -38,11 +38,39 @@
         </dl>
       </aside>
     </div>
+
+    <!-- the thesis ships at launch: PDF hosted in this repo, English abstract
+         beside the link (it's written in Spanish — nobody sensible minds) -->
+    <div class="thesis reveal">
+      <p class="t-label">Bachelor's thesis — in Spanish</p>
+      <h3>Introducción a la teoría de Morse</h3>
+      <!-- keep "Milnor's <em>" on one line: Astro collapses the space at line breaks -->
+      <p class="t-abs">
+        From the Morse Lemma to the Morse inequalities, following Milnor's <em>Morse Theory</em>,
+        with a full development of the simplicial, cellular and relative homology the
+        inequalities rest on.
+      </p>
+      <p class="t-links">
+        <a class="btn ghost t-btn" href="/morse-theory-thesis.pdf">Read the PDF →</a>
+        <a class="t-src" href="https://github.com/qdiazblanco/introduction-to-morse-theory">LaTeX source</a>
+      </p>
+    </div>
   </div>
 </section>
 
 <style>
   .about-grid { display: grid; grid-template-columns: 1.3fr .9fr; gap: 48px; align-items: start; margin-top: 34px }
+  .thesis {
+    margin-top: 40px; border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--surface); padding: 26px 28px; max-width: 640px;
+  }
+  .t-label { font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px }
+  .thesis h3 { font-size: 22px; margin: 0 0 8px }
+  .t-abs { color: var(--muted); font-size: 15.5px; margin: 0 0 18px }
+  .t-links { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin: 0 }
+  .t-btn { font-size: 14.5px; padding: 10px 18px }
+  .t-src { font-family: var(--mono); font-size: 13px; color: var(--muted) }
+  .t-src:hover { color: var(--violet) }
   .about-grid p { margin: 0 0 18px }
   .facts { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 22px }
   .facts dl { margin: 0 }
