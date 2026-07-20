@@ -57,4 +57,25 @@ describe('Morse data derived from each surface', () => {
     }
     expect(A.euler).toBe(-2);
   });
+
+  test('every genus-2 shape variant keeps six critical points (1,4,1)', () => {
+    for (const S of SURFACES.filter((s) => s.name === 'Σ₂')) {
+      const A = analyse(S);
+      expect(A.crit.map((k) => k.idx), S.desc).toEqual([0, 1, 1, 1, 1, 2]);
+    }
+  });
+
+  test('the triple tori: eight critical points (1,6,1) at distinct heights, χ = -4', () => {
+    const tris = SURFACES.filter((s) => s.name === 'Σ₃');
+    expect(tris.length).toBeGreaterThan(0);
+    for (const S of tris) {
+      const A = analyse(S);
+      expect(A.crit, S.desc).toHaveLength(8);
+      expect(A.crit.map((k) => k.idx), S.desc).toEqual([0, 1, 1, 1, 1, 1, 1, 2]);
+      for (let i = 1; i < A.crit.length; i++) {
+        expect(A.crit[i]!.hv - A.crit[i - 1]!.hv, S.desc).toBeGreaterThan(0.05);
+      }
+      expect(A.euler, S.desc).toBe(-4);
+    }
+  });
 });

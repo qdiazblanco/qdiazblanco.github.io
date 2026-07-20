@@ -146,7 +146,10 @@ export const SURFACES: Surface[] = [
     // the genus-2 upgrade: a tube around a standing figure-eight.
     // g(U,W) = U⁴ - U² + 0.06U³ + W² (the small U³ term breaks the
     // up/down symmetry so all six critical heights are distinct);
-    // the surface is g² + (z/1.9)² = 0.16².
+    // the surface is g² + (z/1.9)² = 0.16². The shape knobs: ε (tube
+    // thickness — must stay below the well depth or the holes pinch
+    // shut, which the χ test would catch), the z divisor (slab depth),
+    // and the x/y scales.
     kind: 'implicit', name: 'Σ₂', desc: 'a double torus', label: 'Double torus', chi: -2,
     F: (x, y, z) => {
       const U = y / 1.10, W = x / 0.85;
@@ -155,6 +158,55 @@ export const SURFACES: Surface[] = [
       return g * g + Z * Z - 0.0256;
     },
     bounds: [[-1.0, 1.0], [-1.35, 1.35], [-0.45, 0.45]],
+  },
+  {
+    // thicker tube (ε 0.21), plumper slab — holes shrink, χ unchanged
+    kind: 'implicit', name: 'Σ₂', desc: 'a fat double torus', label: 'Fat Σ₂', chi: -2,
+    F: (x, y, z) => {
+      const U = y / 1.05, W = x / 0.72;
+      const g = U * U * U * U - U * U + 0.06 * U * U * U + W * W;
+      const Z = z / 1.15;
+      return g * g + Z * Z - 0.0441;
+    },
+    bounds: [[-1.1, 1.1], [-1.35, 1.35], [-0.6, 0.6]],
+  },
+  {
+    // thinner tube (ε 0.09), flatter slab — big airy holes
+    kind: 'implicit', name: 'Σ₂', desc: 'a slim double torus', label: 'Slim Σ₂', chi: -2,
+    F: (x, y, z) => {
+      const U = y / 1.15, W = x / 1.0;
+      const g = U * U * U * U - U * U + 0.06 * U * U * U + W * W;
+      const Z = z / 2.9;
+      return g * g + Z * Z - 0.0081;
+    },
+    bounds: [[-0.9, 0.9], [-1.4, 1.4], [-0.35, 0.35]],
+  },
+  {
+    // genus 3: tube around THREE stacked loops — q(U) = U²(U²-1)² - c is a
+    // three-well polynomial (wells at U ≈ -1, 0, 1); connectivity needs the
+    // inter-well bumps under ε and the holes need c > ε. χ = 2 - 2·3 = -4,
+    // with 8 critical points (1, 6, 1) — all still derived, never assumed.
+    kind: 'implicit', name: 'Σ₃', desc: 'a triple torus', label: 'Triple torus', chi: -4,
+    F: (x, y, z) => {
+      const U = y / 0.95, W = x / 0.80;
+      const p = U * U * (U * U - 1) * (U * U - 1);
+      const q = p - 0.10 + 0.012 * U * U * U + W * W;
+      const Z = z / 3.4;
+      return q * q + Z * Z - 0.005625;
+    },
+    bounds: [[-0.9, 0.9], [-1.30, 1.30], [-0.35, 0.35]],
+  },
+  {
+    // same three wells, thicker tube and plumper slab
+    kind: 'implicit', name: 'Σ₃', desc: 'a fat triple torus', label: 'Fat Σ₃', chi: -4,
+    F: (x, y, z) => {
+      const U = y / 0.95, W = x / 0.80;
+      const p = U * U * (U * U - 1) * (U * U - 1);
+      const q = p - 0.12 + 0.012 * U * U * U + W * W;
+      const Z = z / 2.2;
+      return q * q + Z * Z - 0.009025;
+    },
+    bounds: [[-0.9, 0.9], [-1.30, 1.30], [-0.35, 0.35]],
   },
 ];
 
