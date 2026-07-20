@@ -1,0 +1,133 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base
+  title="Contact — Enrique Díaz Blanco"
+  description="Write to Quique about Lean, Morse theory, signal processing, or MadLean — in English or Spanish."
+>
+  <section class="block" id="contact-page">
+    <div class="wrap">
+      <p class="eyebrow reveal"><span class="dot"></span>Say hello</p>
+      <h1 class="reveal page-h1">Let's talk proofs, or signals</h1>
+      <p class="lede reveal">
+        Lean questions, Morse theory, messy fNIRS pipelines, MadLean, or something I got wrong
+        on this site — all welcome. English or Spanish, both fine.
+      </p>
+
+      <div class="c-grid reveal">
+        <div class="c-left">
+          <!-- entity-obfuscated address; works with or without JS -->
+          <a class="big-mail" href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#113;&#100;&#105;&#97;&#122;&#98;&#108;&#97;&#110;&#99;&#111;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;"
+            >&#113;&#100;&#105;&#97;&#122;&#98;&#108;&#97;&#110;&#99;&#111;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;</a
+          >
+          <button id="copyBtn" class="copy-btn" type="button">copy address</button>
+
+          <div class="social">
+            <a href="https://github.com/qdiazblanco">GitHub</a>
+            <a href="https://leanprover.zulipchat.com">Lean Zulip</a>
+            <a href="https://madlean-hub.web.app">MadLean</a>
+            <a href="https://www.linkedin.com/in/enrique-d%C3%ADaz-blanco-477667381/">LinkedIn</a>
+          </div>
+          <p class="c-hint">
+            On the Lean Zulip I'm <b>enrique diaz blanco</b> — for anything Lean, that's often
+            the fastest place to catch me.
+          </p>
+        </div>
+
+        <form id="composer" class="composer" novalidate>
+          <label for="cEmail">your email <span class="opt">(optional — so I can reply)</span></label>
+          <input id="cEmail" name="email" type="email" autocomplete="email" placeholder="you@example.org" />
+          <label for="cSubject">subject</label>
+          <input id="cSubject" name="subject" type="text" required placeholder="A question about the proof stepper" />
+          <label for="cBody">message</label>
+          <textarea id="cBody" name="body" rows="7" required placeholder="Hi Quique —"></textarea>
+          <button class="btn primary" type="submit">Open in your mail app →</button>
+          <p class="c-note">
+            This site has no server: the button composes the email in <em>your</em> mail app,
+            pre-filled — nothing is sent or stored here.
+          </p>
+        </form>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .page-h1 { font-size: clamp(34px, 5.5vw, 56px) }
+  .c-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 56px; align-items: start; margin-top: 40px }
+  @media (max-width: 800px) { .c-grid { grid-template-columns: 1fr; gap: 36px } }
+
+  .big-mail {
+    font-family: var(--disp); font-weight: 700; font-size: clamp(20px, 3vw, 34px); text-decoration: none;
+    overflow-wrap: anywhere; display: inline-block;
+    background: linear-gradient(92deg, var(--violet), var(--blue), var(--hbo));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .copy-btn {
+    display: block; margin: 10px 0 26px; font-family: var(--mono); font-size: 12.5px; cursor: pointer;
+    color: var(--muted); background: none; border: 1px solid var(--border); border-radius: 999px;
+    padding: 8px 16px; min-height: 40px; transition: color .15s, border-color .15s;
+  }
+  .copy-btn:hover { color: var(--ink); border-color: var(--violet) }
+  html:not(.js) .copy-btn { display: none }
+
+  .social { display: flex; gap: 12px; flex-wrap: wrap }
+  .social a {
+    font-family: var(--mono); font-size: 14px; text-decoration: none; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 999px; transition: border-color .18s, color .18s;
+    padding: 12px 18px; /* phone tap-target floor */
+  }
+  .social a:hover { color: var(--ink); border-color: var(--ink) }
+  .c-hint { color: var(--muted); font-size: 14.5px; margin: 22px 0 0; max-width: 38ch }
+  .c-hint b { font-family: var(--mono); font-weight: 500; color: var(--ink) }
+
+  .composer {
+    display: flex; flex-direction: column; gap: 6px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 26px;
+  }
+  html:not(.js) .composer { display: none } /* mailto assembly needs JS; the big link above always works */
+  .composer label {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .05em; text-transform: uppercase;
+    color: var(--muted); margin-top: 12px;
+  }
+  .composer label:first-child { margin-top: 0 }
+  .composer .opt { text-transform: none; letter-spacing: 0 }
+  .composer input, .composer textarea {
+    font-family: var(--body); font-size: 15.5px; color: var(--ink);
+    background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 11px 14px; resize: vertical;
+  }
+  .composer input:focus-visible, .composer textarea:focus-visible { outline: 3px solid var(--blue); outline-offset: 1px }
+  .composer .btn { margin-top: 18px; justify-content: center; border: 1.5px solid var(--violet); background: var(--violet); color: #fff }
+  .composer .btn:hover { box-shadow: 6px 8px 0 color-mix(in srgb, var(--violet) 35%, transparent) }
+  .c-note { color: var(--muted); font-size: 13px; margin: 12px 0 0; line-height: 1.5 }
+</style>
+
+<script>
+  // address assembled at runtime — one more hurdle for scrapers
+  const addr = ['qdiazblanco', 'gmail.com'].join('@');
+
+  const copyBtn = document.getElementById('copyBtn');
+  copyBtn?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(addr);
+      copyBtn.textContent = 'copied ✓';
+    } catch {
+      copyBtn.textContent = addr; // clipboard blocked — show it for manual copy
+    }
+    setTimeout(() => (copyBtn.textContent = 'copy address'), 2000);
+  });
+
+  const form = document.getElementById('composer') as HTMLFormElement | null;
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const val = (id: string) => (document.getElementById(id) as HTMLInputElement | HTMLTextAreaElement | null)?.value.trim() ?? '';
+    const from = val('cEmail');
+    const subject = val('cSubject') || 'Hello from your website';
+    let body = val('cBody');
+    if (from) body += `\n\n— reply to: ${from}`;
+    location.href = `mailto:${addr}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  });
+</script>
