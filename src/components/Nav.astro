@@ -27,7 +27,7 @@ const isActive = (href: string) =>
 
 <header class="nav">
   <div class="wrap nav-inner">
-    <a class="brand" href="/"><span class="glyph" aria-hidden="true"></span>Enrique Díaz Blanco</a>
+    <a class="brand" href="/"><span class="glyph" aria-hidden="true">χ</span>Enrique Díaz Blanco</a>
 
     <nav class="links" id="links" aria-label="Primary">
       {links.map((l) => (
@@ -67,9 +67,12 @@ const isActive = (href: string) =>
     font-family: var(--disp); font-weight: 700; font-size: 18px; letter-spacing: -.02em; text-decoration: none;
     display: inline-flex; align-items: center; gap: 10px; margin-right: auto; white-space: nowrap;
   }
+  /* the brand mark is the same χ as the favicon — the site's invariant */
   .brand .glyph {
-    width: 22px; height: 22px; border-radius: 7px;
-    background: conic-gradient(from 210deg, var(--hbo), var(--amber), var(--mint), var(--blue), var(--violet), var(--hbo));
+    font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-weight: 700;
+    font-size: 27px; line-height: 1; transform: translateY(-2px);
+    background: linear-gradient(135deg, var(--blue), var(--violet));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
   }
   nav.links { display: flex; gap: 26px }
   nav.links a {
